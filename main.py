@@ -5,7 +5,8 @@ import os
 import time
 import copy
 from tkinter import messagebox
-
+import A_star
+from PIL import Image,ImageTk
 class Node:
     def __init__(self, point, parent=None, direction=None, tracking=None):
         self.point = point
@@ -35,11 +36,13 @@ class Statu_rock:
         print("Trang thai: ")
         for i in self.statu:
             print(i.point)
+
     def get_points(self):
         list_tmp = []
         for i in self.statu:
             list_tmp.append(i.point)
         return list_tmp
+    
     def get_point_move(self):
         if self.ID_rock is None:
             return None
@@ -76,8 +79,8 @@ class GameGUI:
         self.button_BFS = Button(self.tool_bar,width=5,height=2, text="BFS",command=self.BFS)
         self.button_UCS = Button(self.tool_bar, width=5,height=2,text="UCS",command=self.UCS)
         self.button_A_star = Button(self.tool_bar,width=5,height=2,text="A*",command=self.A_star)
-        self.button_pause = Button(self.tool_bar,width=37,height=37,image=self.play_image,command=self.pause)
-        self.button_reset = Button(self.tool_bar,width=5,height=2,text="reset",command=self.reset_this)
+        self.button_pause = Button(self.tool_bar,width=38.5,height=38,image=self.play_image,command=self.pause)
+        self.button_reset = Button(self.tool_bar,width=5,height=2,text="Reset",command=self.reset_this)
 
         self.button_DFS.grid(row=2,column=0)
         self.button_BFS.grid(row=3,column=0)
@@ -87,10 +90,10 @@ class GameGUI:
         self.button_reset.grid(row=7,column=0)
 
         #tạo map
-        self.right_frame = Frame(root,width=900,height=600,bg="grey")
+        self.right_frame = Frame(root,width=900,height=900,bg="grey")
         self.right_frame.grid(row=0,column=1,padx=10,pady=5)
 
-        self.map_GUI = Frame(self.right_frame,width=900,height=600,bg="grey")
+        self.map_GUI = Frame(self.right_frame,width=900,height=900,bg="grey")
         self.map_GUI.grid(row=0,column=0,padx=20,pady=5)
 
         self.images = {}  # Store images to prevent garbage collection
@@ -107,7 +110,7 @@ class GameGUI:
         self.frame_choose_map = Frame(self.left_frame,width=1000,height=500,padx=10,pady=10,bg="white")
         self.frame_choose_map.grid(row=1,column=0)
         #hiển thị lable
-        Label(self.frame_choose_map,text="select map",font=("Arial", 13)).grid(row=0,column=0)
+        Label(self.frame_choose_map,text="Select map",font=("Time News Roman", 13)).grid(row=0,column=0)
 
         #compobox hiển thị danh sách list
         self.listbox = ttk.Combobox(self.frame_choose_map,values=name_map, state="readonly")
@@ -121,8 +124,8 @@ class GameGUI:
         #frame in điểm trọng số, số bước đi (kết quả):
         self.display_result = Frame(self.right_frame,width=900,height=200,padx=5,pady=10, bg="white")
         self.display_result.grid(row=1,column=0)
-        Label(self.display_result,text="Result: ",font=("Arial", 13, "bold")).grid(row=0,column=0)
-        self.label_result = Label(self.display_result,text="weigth = 0 \n distant = 0",font=("Arial", 13),width=60)
+        Label(self.display_result,text="Result: ",font=("Time News Roman", 13, "bold")).grid(row=0,column=0)
+        self.label_result = Label(self.display_result,text="weigth = 0\ndistant = 0",font=("Time News Roman", 13),width=60)
         self.label_result.grid(row=1,column=0)
 #---------------------------tạo hàm-----------------------------
 #---------------------------------------------------------------
@@ -361,6 +364,7 @@ class GameGUI:
     #thực hiện BFS
     def BFS(self):
         print(self.ID_rock)
+        
         print("BFS")
         return
     
@@ -394,6 +398,8 @@ class GameGUI:
         Open = [S]
         closed = []
         statu_ston = self.DFS_step_rock(Open,closed)
+        if statu_ston is None:
+            return None, "Không thể đẩy đá"
         statu_ston = statu_ston[::-1]
         tmp_map = copy.deepcopy(self.map)
         selected_item = self.listbox.get()
@@ -498,7 +504,7 @@ class GameGUI:
 
     def add_x_to_label(self,label, text="X", color="red"):
         # Sử dụng màu nền của label cha
-        x_label = Label(label, text=text, fg=color, font=("Arial", 24, "bold"), bg=label["bg"])
+        x_label = Label(label, text=text, fg=color, font=("Time News Roman", 24, "bold"), bg=label["bg"])
         x_label.place(x=20, y=20)  # Điều chỉnh vị trí chữ X sao cho phù hợp
         return x_label
     def update_rock(self, point):
@@ -521,13 +527,20 @@ class GameGUI:
             else:
                 self.map[row][col] = "$"
         self.update_grid()
-
-
     def UCS(self):
         print("UCS")
         return
     def A_star(self):
-        print("A*")
+        stone = {}
+        for i in range(self.count_rock):
+            stone[self.ID_rock[i]] = self.khoi_luong_da[i]
+        start = self.start
+        goal_positions = self.destination
+        road = A_star.A_star(self.map,start,goal_positions,stone)
+        if road is None:
+            print("Không tìm được đường đi")
+            return
+        self.read_road(road,0)
         return
     def load_map(self,name_map):
         self.map = self.readmap(name_map)
@@ -634,14 +647,15 @@ class GameGUI:
         return True
     def create_grid(self):
         # Load images for different types of cells
+        cell_size =70
         self.images = {
-            '#': PhotoImage(file="images/wall.png").subsample(5,5),
-            '@': PhotoImage(file="images/player.png").subsample(5,5),
-            '$': PhotoImage(file="images/rock.png").subsample(5,5),
-            '.': PhotoImage(file="images/target.png").subsample(5,5),
-            ' ': PhotoImage(file="images/empty.png").subsample(5,5),
-            '*': PhotoImage(file="images/rock.png").subsample(5,5),
-            '+': PhotoImage(file="images/player.png").subsample(5,5)
+            '#': ImageTk.PhotoImage(Image.open("images/wall.png").resize((cell_size, cell_size))),
+            '@': ImageTk.PhotoImage(Image.open("images/player.png").resize((cell_size, cell_size))),
+            '$': ImageTk.PhotoImage(Image.open("images/rock.png").resize((cell_size, cell_size))),
+            '.': ImageTk.PhotoImage(Image.open("images/target.png").resize((cell_size, cell_size))),
+            ' ': ImageTk.PhotoImage(Image.open("images/empty.png").resize((cell_size, cell_size))),
+            '*': ImageTk.PhotoImage(Image.open("images/rock.png").resize((cell_size, cell_size))),
+            '+': ImageTk.PhotoImage(Image.open("images/player.png").resize((cell_size, cell_size)))
         }
         # Create the grid layout
         self.labels = []
@@ -676,7 +690,7 @@ def load_file():
 
 if __name__ == "__main__":
     root = Tk()
-    root.config(bg = "skyblue")
+    root.config(bg = "black")
 
     root.grid_columnconfigure(0,weight=1)
     root.grid_columnconfigure(1,weight=2)
