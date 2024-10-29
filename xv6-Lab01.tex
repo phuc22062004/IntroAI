@@ -1,0 +1,122 @@
+% Source code by Nguyễn Văn Lộc
+\documentclass[a4paper]{article}
+\usepackage[fontsize=13pt]{scrextend}
+\usepackage[utf8]{vietnam}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+% Credit: fit@hcmus template
+\makeatletter
+\def\BState{\State\hskip-\ALG@thistlm}
+\makeatother
+\usepackage{caption}
+\usepackage{ragged2e}
+\usepackage{chngcntr}
+\usepackage{xcolor}
+\usepackage{colortbl}
+\usepackage{titlesec}
+\usepackage{mdframed}
+\usepackage{amssymb}
+\usepackage{pgf,tikz,pgfplots}
+\usepackage{graphicx}
+\graphicspath{ {figures/} }
+\usepackage{array}
+\usepackage{cases}
+\usepackage{listings}
+\usepackage{tabulary}
+\usepackage{color}
+\usepackage{float} 
+\usepackage{hyperref}
+\usepackage{multirow}
+\usepackage{minitoc}
+\pgfplotsset{compat=1.5}
+\usepackage{mathrsfs}
+\usetikzlibrary{arrows, calc}
+\usepackage{fancyhdr}
+\usepackage{longtable}
+\usepackage{verbatim}
+\usepackage{indentfirst}
+\usepackage{minted}
+\usepackage{enumitem}
+\usepackage[
+backend=bibtex,
+style=numeric,
+natbib=true,
+url=true, 
+doi=true,
+eprint=false,
+sorting=nyt
+]{biblatex}
+\addbibresource{refs.bib}
+\pagestyle{fancy}
+\pagestyle{empty}
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+\lstset{frame=tb,
+  language=Python,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  filecolor=magenta,      
+  urlcolor=red,
+  pdftitle={xv6 Lab 01},
+  % pdfpagemode=FullScreen,
+}
+\newcommand{\tabitem}{~~\llap{\textbullet}~~}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+\author{Hồ Minh Quang}
+\newmdenv[linecolor=black,skipabove=\topsep,skipbelow=\topsep,
+leftmargin=-5pt,rightmargin=-5pt,
+innerleftmargin=5pt,innerrightmargin=5pt]{mybox}
+\fancyhf{}
+\lhead{Báo cáo bài tập: xv6 và Unix}
+\chead{}
+\rhead{}
+\cfoot{\hspace{4.65cm} \thepage}
+\rfoot{}
+\lfoot{}
+\pagestyle{fancy}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\begin{document}
+  \input{latex/cover}
+  \newpage
+  
+  \tableofcontents
+  \renewcommand{\listfigurename}{Danh sách hình}
+  \listoffigures
+%  \listoftables
+  \newpage
+  \nopagebreak
+  \counterwithin{figure}{section}
+  \input{latex/setup}
+  \input{latex/sleep}
+  \input{latex/pingpong}
+  \input{latex/primes}
+  \input{latex/find}
+  \input{latex/xargs}
+  
+  \newpage
+  \section*{Tài liệu tham khảo}
+  \addcontentsline{toc}{section}{Tài liệu tham khảo}
+  \printbibliography[type = book, title = {Sách}]
+  \printbibliography[type = article, title = {Bài báo}]
+  \printbibliography[type = misc, title = {Internet}]
+  
+\end{document}
