@@ -25,7 +25,7 @@ def UCS(game: SearchSpace, output_name: str):
                 surrounding_isEmpty = surrounding_isEmpty and game.surroundingCheck(neighbor)
 
             agent_stone_dist_new = agent_stone_distance(node)
-            if surrounding_isEmpty and np.all(agent_stone_dist_curr + 1 < agent_stone_dist_new):
+            if surrounding_isEmpty and np.all(agent_stone_dist_curr - 1 < agent_stone_dist_new):
                 node_set.remove(node)
 
         return node_set
