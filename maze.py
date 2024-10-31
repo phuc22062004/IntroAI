@@ -126,14 +126,37 @@ class SearchSpace:
     
     # Check if the agent is moving into loops
     def isLooped(self, curr_agent_pos: tuple[int], stones_state_id: int):
-        for i in range(2, len(self.closed_set), 2):
-            if self.closed_set[len(self.closed_set) - i].stones_list_id != stones_state_id:
-                return False
-            
-            elif self.closed_set[len(self.closed_set) - i].agent_pos == curr_agent_pos:
+        prev_state_id = len(self.closed_set) - 1
+        prev_of_prev_id = self.closed_set[prev_state_id].prev_state
+
+        while prev_of_prev_id > -1:
+            prev_of_prev_state = self.closed_set[prev_of_prev_id]
+            if (curr_agent_pos == prev_of_prev_state.agent_pos
+                and stones_state_id == prev_of_prev_state.stones_list_id):
                 return True
+            
+            prev_state_id = prev_of_prev_state.prev_state
+            if prev_state_id == -1:
+                break
+
+            prev_of_prev_id = self.closed_set[prev_state_id].prev_state
         
         return False
+    
+    # Check if 
+    def surroundingCheck(self, position: tuple[int]) -> list[bool]:
+        neighbor_cells = self.get_neighbors(position)
+
+        neighbor_isWall = []
+        for neighbor in neighbor_cells:
+            if neighbor is None:
+                neighbor_isWall.append(True)
+            elif neighbor is not None and self.isWall(neighbor):
+                neighbor_isWall.append(True)
+            else:
+                neighbor_isWall.append(False)
+        
+        return neighbor_isWall
 
     # Agent move
     def move_up(self, node: Node):

@@ -18,8 +18,14 @@ def UCS(game: SearchSpace, output_name: str):
         # Check if agent is moving further from all stones
         # Remove moves that are not stone pushing
         for node in node_set:
+            neighbor_cells = game.get_neighbors(node.agent_pos)
+            
+            surrounding_isEmpty = True
+            for neighbor in neighbor_cells:
+                surrounding_isEmpty = surrounding_isEmpty and game.surroundingCheck(neighbor)
+
             agent_stone_dist_new = agent_stone_distance(node)
-            if np.all(agent_stone_dist_curr < agent_stone_dist_new):
+            if surrounding_isEmpty and np.all(agent_stone_dist_curr + 1 < agent_stone_dist_new):
                 node_set.remove(node)
 
         return node_set
