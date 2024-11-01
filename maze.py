@@ -83,7 +83,6 @@ class SearchSpace:
     def get_number_of_cells(self) -> int:
         return self.row * self.column
     
-    # This function will be removed later if not needed
     def get_neighbors(self, position: tuple[int]):
         # Get all valid directions
         up = (position[0] - 1, position[1]) if position[0] > 0 else None
@@ -143,7 +142,7 @@ class SearchSpace:
         
         return False
     
-    # Check if 
+    # Check if the surrounding has any wall cell
     def surroundingCheck(self, position: tuple[int]) -> list[bool]:
         neighbor_cells = self.get_neighbors(position)
 

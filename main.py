@@ -2,61 +2,23 @@ from tkinter import ttk
 from tkinter import *
 from types import SimpleNamespace
 import os
-import time
-import copy
 from tkinter import messagebox
-import A_star
+import A_star_DFS
 from PIL import Image,ImageTk
-class Node:
-    def __init__(self, point, parent=None, direction=None, tracking=None):
-        self.point = point
-        self.parent = parent
-        self.direction = direction
-        self.tracking = tracking
-    def road(self):
-        tmp = self
-        road = []
-        while tmp.parent != None:
-            road.append(tmp)
-            tmp = tmp.parent
-        road = road[::-1]
-        return road
-    def display(self):
-        a = None
-        if self.parent is not None:
-            a = self.parent.point
-        print(self.point, a,self.direction,self.tracking)
+import utils
+import maze
+import UCS
 
-class Statu_rock:
-    def __init__(self, statu, par=None,ID_rock = None):
-        self.statu = statu
-        self.par = par
-        self.ID_rock = ID_rock
-    def display(self):
-        print("Trang thai: ")
-        for i in self.statu:
-            print(i.point)
-
-    def get_points(self):
-        list_tmp = []
-        for i in self.statu:
-            list_tmp.append(i.point)
-        return list_tmp
     
-    def get_point_move(self):
-        if self.ID_rock is None:
-            return None
-        return self.statu[self.ID_rock]
-    
-    
-
 #class GUI dùng cho giao diện
 class GameGUI:
     def __init__(self, root, name_map):
-        self.UP = "Up"
-        self.DOWN = "Down"
-        self.Right = "Right"
-        self.Left = "Left"
+        self.go_to = {
+            'u': "Up",
+            'd': "Down",
+            'r': "Right",
+            'l': "Left"
+        }
         self.ID_rock = {}
         self.count_rock = 0
         self.cac_huong_rock = {}#lu cac hướng viên đá có thể đi và bật 1 nếu viên đá đã đi hướng đó rồi
@@ -103,8 +65,6 @@ class GameGUI:
         self.create_grid()
         self.root.focus_set()
         self.root.bind("<KeyPress>", self.move_player)
-        # Ràng buộc phím Enter
-        self.root.bind("<Return>", self.on_enter_key)
         
         #tạo Frame chứ danh sách map
         self.frame_choose_map = Frame(self.left_frame,width=1000,height=500,padx=10,pady=10,bg="white")
@@ -147,73 +107,6 @@ class GameGUI:
         else:
             self.button_pause.config(image=self.pause_image)  # Chuyển thành nút pause
             self.is_paused = True
-    # Khi nhấn Enter, tiếp tục bước tiếp theo
-    def on_enter_key(self,event):
-        if hasattr(self, 'current_step'):
-            self.current_step()
-    #xuất ra vị trí các up, down, left, right
-    def pointed_up(self,i, j):
-        return i-1,j
-    def pointed_down(self,i,j):
-        return i+1,j
-    def pointed_left(self,i,j):
-        return i , j-1
-    def pointed_right(self ,i, j):
-        return i, j + 1
-    #kiểm tra vị trí đi hướng đó có thể đi được hay không
-    def check_map(self, row, col, function_direct, direct):
-        new_row, new_col = function_direct(row, col)
-        if self.map[new_row][new_col] == "#":
-            return None
-        if self.map[new_row][new_col] in ("$", "*") :
-            rock_new_row, rock_new_col = function_direct(new_row, new_col)
-            if self.map[rock_new_row][rock_new_col] in ("$","*"):
-                return None
-            elif self.map[rock_new_row][rock_new_col] == "#":
-                return None
-        tracking = {"Up": "Down", "Down": "Up", "Left": "Right", "Right": "Left"}[direct]
-        return [(new_row, new_col), (row, col), direct, tracking]
-    
-    #lấy ra tập con khả có thể đi được trong một điểm
-    def get_subset(self, point):
-        row, col = point
-        directions = [
-            ("Up", self.pointed_up),
-            ("Right", self.pointed_right),
-            ("Down", self.pointed_down),
-            ("Left", self.pointed_left)
-        ]
-        subset = [self.check_map(row, col, func, direction) for direction, func in directions]
-        return [item for item in subset if item is not None]
-    #hàm dùng để kiểm tra đó có phải là đích hay không thỏa điều kiện dừng chứ
-    def is_destination(self):
-        for row, col in self.destination:
-            if self.map[row][col] in (".","+"):
-                return False
-        return True
-    #hàm dùng để in ra đường đi từ đích đế O
-    def path(self,O,road):
-        road.append(O)
-        if O.par != None:
-            return self.path(O.par,road)
-        else:
-            return road
-    #check một điểm của viên đá có trong mảng hay không
-    def checkInArray_rock(self, tmp, Open):
-        points_temp = tmp.get_points()  # Danh sách các `point` từ `tmp`
-        list_tmp = []
-        for statu in Open:
-            point_rock = statu.get_points()  # Danh sách `point` từ `statu`
-            list_tmp.append(point_rock)
-        return points_temp in list_tmp  # Kiểm tra nếu `points_temp` nằm trong `list_tmp`
-
-    #kiểm một điểm người chơi dự định đứng có trong mảng không
-    def checkInArray_player(self,tmp, Open):
-        for x in Open:
-            if tmp.point == x.point:
-                return True
-        return False
-
 
     #dùng để di chuyển khi truyền giá trị up, left right
     def move(self, direction):
@@ -222,333 +115,74 @@ class GameGUI:
         event.keysym = direction
         self.move_player(event)
 
-    #xuất ra tập vị trí của viên đá
-    def find_rock(self):
-        vi_tri_da = []
-        for i in range(self.count_rock):
-            vi_tri_da.append(self.ID_rock[i])
-        return vi_tri_da
-    #tim tap dich.
-    def find_destination(self):
-        vi_tri_dich = []
-        for i in range(self.count_rock):
-            vi_tri_dich.append(self.ID_rock[i])
-        return vi_tri_dich
-    #kiểm tra đá còn đường đi hay không
-    def check_can_move_rock(self):
-        vi_tri_da = self.find_rock()
-        for x in vi_tri_da:
-            tap_con_vi_x_y = self.get_subset(x)
-            if len(tap_con_vi_x_y) > 2:
-                return True
-        return False
-    #di chuyển đá đến vị trí mong muốn
-    def move_rock_to_point(self,rock_point ,point ):   
-        if rock_point == point:
-            return True
-        row_rock, col_rock = rock_point
-        row, col = point
-        if self.map[row_rock][col_rock] not in ("$","*"):
-            return False
-        if self.map[row][col] in ("$","*"):
-            return False
-        for i in range(self.count_rock):
-            if self.ID_rock[i] == (row_rock,col_rock):
-                self.ID_rock[i] = point
-        if self.map[row_rock][col_rock] == "*":
-            self.map[row_rock][col_rock] = "."
-        else:
-             self.map[row_rock][col_rock] = " "
-        node = Node((row_rock,col_rock))
-        self.move_player_to(node)
-        if self.map[row][col] == ".":
-            self.map[row][col] = "*"
-        else:
-            self.map[row][col] = "$"
-        row, col = self.find_player_position()
-        if(self.map[row][col] in ("$","*")):
-            print("Da de")
-        return True
-
-    #hàm get ra tập con của tất cả viên đá
-    def get_subset_rock(self,O):
-        rockPointes = self.find_rock()#tìm vị trí đá
-        subsetRockes = []
-        subset_rock_statu = []
-        if O.par is None:
-            S = Node(self.start)
-        else:
-            point_rock = O.get_point_move()
-            point = self.get_point_direction(point_rock.point,point_rock.tracking)
-            S = Node(point[0])
-            if self.move_player_to(S) == False:
-                print("khong the di chuyen")
-        #tạo ra tập vị trí các cục đá ở vị trí hiện tại
-        for rockpoint in rockPointes:
-            tmp = Node(rockpoint)
-            subset_rock_statu.append(tmp)
-        i =  0
-        tracking = {"Up": "Down", "Down": "Up", "Left": "Right", "Right": "Left"}
-        for rockPoint in rockPointes:#lấy ra tập vị trí của đá
-            subsetRock_ = self.get_subset(rockPoint)#lấy ra các vị trí của vi đá có thể đi
-            subsetRock_ = [x for x in subsetRock_ if self.map[x[0][0]][x[0][1]] not in ("$", "*")]
-            cac_huong_di = []#lấy ra tập các hướng viên đá có thể đi
-            for subsetRock in subsetRock_:
-                cac_huong_di.append(subsetRock[2])
-            for subsetRock in subsetRock_:
-                if tracking[subsetRock[2]] in cac_huong_di:#loại bỏ các hướng mà viên đá không thể đi được
-                    Open = [S]
-                    closed = []
-                    point = self.get_point_direction(rockPoint,subsetRock[3])
-                    G = Node(point[0])
-                    if  self.DFS_step_player(Open,closed,G):
-                        tmp = Node(subsetRock[0],subsetRock[1],subsetRock[2],subsetRock[3])
-                        subset_tmp = subset_rock_statu.copy()
-                        subset_tmp[i] = tmp
-                        statu_ = Statu_rock(subset_tmp,ID_rock=i)
-                        subsetRockes.append(statu_)
-                    if self.move_player_to(S) == False:
-                        print("khong the di")
-            i += 1
-        return subsetRockes
-    #hàm lấy ra tập con của một player
-    def get_subset_player(self):
-        player = self.find_player_position()
-        subset = self.get_subset(player)
-        subset_player = []
-        for point in subset:
-            row, col = point[0]
-            if self.map[row][col] not in ("$","*"):
-                tmp = Node(point[0],point[1],point[2],point[3])
-                subset_player.append(tmp)
-        return subset_player
-            
-
-    #hàm tạo danh sách node
-    def create_list_node(self,pointes):
-        List = []
-        for point in pointes:
-            List.append(Node(point))
-        return List
-    #hàm dùng để di chuyển đá đễn điểm chỉ định
-    def move_rock_to(self,point):
-        vi_tri_da_s = self.find_rock()
-        if len(vi_tri_da_s) != len(point):
-            print("dua vao khong dung")
-            return False
-        for i in range(len(vi_tri_da_s)):
-            self.move_rock_to_point(vi_tri_da_s[i],point[i].point)
-        return True
-    #hàm dùng để di chuyển player đến vị trí mong muốn
-    def move_player_to(self,point):
-        current = self.find_player_position()
-        new_row, new_col = point.point
-        row, col = current
-        if current == point.point:
-            return True
-        if self.map[new_row][new_col] in ("$","*","#"):
-            return False
-        if self.map[row][col] == "+":
-            self.map[row][col] = "."
-        else:
-            self.map[row][col] = " "
-        if self.map[new_row][new_col] == ".":
-            self.map[new_row][new_col] = "+"
-        else:
-            self.map[new_row][new_col] = "@"
-        self.player_position = (new_row,new_col)
-    #kiểm tra vị trí đúng có phải vị trí đích không
-    def equal(self,S,G):
-        return S.point == G.point
-
     #thực hiện BFS
     def BFS(self):
-        print(self.ID_rock)
-        
+        print(self.map)
         print("BFS")
         return
     
-    def Run_DFS(self):
-        Lo_trinh,info = self.DFS()
-        distant = 0
-        if Lo_trinh == None:
-            messagebox.showerror("Lỗi", info)
+    def UCS(self):
+        result_list = [' '.join(map(str,self.khoi_luong_da))]+[''.join(row) for row in self.map]
+        new_game = maze.SearchSpace(result_list)
+        UCS.UCS(new_game, 'output.txt')
+
+
+    def A_star(self):
+        print("A*:")
+        stone = {self.ID_rock[i]: self.khoi_luong_da[i] for i in range(self.count_rock)}
+        start = self.start
+        goal_positions = self.destination
+        road, total_cost, execution_time = A_star_DFS.A_star(self.map, start, goal_positions, stone)
+        print(total_cost)
+        print("Execution time:", execution_time ,"(ms)")
+        if road is None:
+            print("Không tìm được đường đi")
             return
+        print(road)
+        self.read_road(road, 0)
+        return
+    
+    
+    def Run_DFS(self):
+        print("DFS: ")
+        map_ = utils.Maze(self.map,self.ID_rock,self.count_rock,self.cac_huong_rock,self.destination,self.start)
+        Lo_trinh,time,  memory= A_star_DFS.DFS(map_)
+        print(Lo_trinh)
+        distant = 0
+        print("time: ", time,"(ms)")
+        print("memory: ",memory,"(MB)")
         distant = len(Lo_trinh)
         self.label_result.config(text=f"weight = 0\ndistant={distant}")
         self.read_road(Lo_trinh,0)
+    
+    
 
     def read_road(self, road,index):
         if self.is_paused:            
             self.root.after(1000, lambda: self.read_road(road,index))  
             return       
         if index < len(road):
-            self.move(road[index])
+            self.move(self.go_to[road[index].lower()])
             self.root.after(1000, lambda: self.read_road(road,index+1))
         if index == len(road) - 1:
             messagebox.showinfo("Thông báo", "hoàn thành đường đi")
-    #dfs mới chế tạo lại
-    def DFS(self):
-        points_rock = self.find_rock()
-        points_switch = self.find_destination()
-        tmp = self.create_list_node(points_rock)
-        S = Statu_rock(tmp)
-        tmp = self.create_list_node(points_switch)
-        G = Statu_rock(tmp)
-        Open = [S]
-        closed = []
-        statu_ston = self.DFS_step_rock(Open,closed)
-        if statu_ston is None:
-            return None, "Không thể đẩy đá"
-        statu_ston = statu_ston[::-1]
-        tmp_map = copy.deepcopy(self.map)
-        selected_item = self.listbox.get()
-        self.reset_game(selected_item)
-        Lo_Trinh = self.find_road(statu_ston)
-        if Lo_Trinh != None:
-            return Lo_Trinh,"hoàn thành chúc mừng"
-        self.map = tmp_map
-        return None, "không thể đẩy đá"
-    def ve_map(self, map):
-        for x in map:
-            print(x)
-        print("\t\n")
 
-    def find_road(self,statu_ston):
-        Open = []
-        closed = []
-        Lo_trinh = []
-        selected_item = self.listbox.get()
-        for i in range(1,len(statu_ston)):
-            ID_rock = statu_ston[i].ID_rock
-            point_ston = statu_ston[i-1].statu[ID_rock].point
-            direct_ston = statu_ston[i].statu[ID_rock].tracking
-            point_player = self.get_point_direction(point_ston,direct_ston)
-            Open.clear()
-            closed.clear()
-            G = Node(point_player[0])
-            S = Node(self.player_position)
-            Open.append(S)
-            tmp_map = copy.deepcopy(self.map)
-            destination = self.DFS_step_player(Open,closed,G)
-            if destination is None:
-                print("ket thuc lo trinh")
-                return None
-            self.map = tmp_map
-            road = destination.road()
-            for x in road:
-                Lo_trinh.append(x.direction)
-                self.move(x.direction)
-            Lo_trinh.append(point_player[3])
-            self.move(point_player[3])
-        self.reset_game(selected_item)
-        return Lo_trinh
-
-    def get_point_direction(self,point,direct):
-        row, col = point
-        directions = {
-            "Up": self.pointed_up,
-            "Down": self.pointed_down,
-            "Left": self.pointed_left,
-            "Right": self.pointed_right
-        }
-        return self.check_map(row,col,directions[direct],direct)
-
-    def DFS_step_player(self, Open,closed,G):
-        if(len(Open) == 0):
-            # print("hiep si ko co duong di !")
-            return None
-        O = Open.pop(0)
-        self.move_player_to(O)
-        self.update_grid()
-        closed.append(O)
-        if(self.equal(O,G)):
-            # print("tim thay duong di cua hiep si")
-            return O  
-        pos = 0
-        for x in self.get_subset_player():
-            tmp = x
-            tmp.parent = O
-            ok1 = self.checkInArray_player(tmp,Open)
-            ok2 = self.checkInArray_player(tmp, closed)
-            if not ok1 and not ok2:
-                Open.insert(pos,tmp)
-                pos +=1
-        return self.DFS_step_player(Open,closed,G)
-
-    # dùng DFS để tìm đường đi cho đá
-    def DFS_step_rock(self, Open, Closed):
-        if len(Open) == 0:
-            # print("tiềm kiếm trạng thái thất bại")
-            return None
-        O = Open.pop(0)
-        self.move_rock_to(O.statu)
-        Closed.append(O)
-        if self.is_destination():
-            # print("tim thấy trạng thái đá phù hợp")
-            road = []
-            Closed.pop()
-            return self.path(O,road)
-        pos = 0
-        list__ = []
-        for x in self.get_subset_rock(O):
-            tmp = x
-            tmp.par = O
-            list__.append(tmp)
-            ok1 = self.checkInArray_rock(tmp,Open)
-            ok2 = self.checkInArray_rock(tmp,Closed)
-            if not ok1 and not ok2:
-                Open.insert(pos,tmp)
-                pos +=1
-        return self.DFS_step_rock(Open,Closed)
 
     def add_x_to_label(self,label, text="X", color="red"):
         # Sử dụng màu nền của label cha
         x_label = Label(label, text=text, fg=color, font=("Time News Roman", 24, "bold"), bg=label["bg"])
         x_label.place(x=20, y=20)  # Điều chỉnh vị trí chữ X sao cho phù hợp
         return x_label
-    def update_rock(self, point):
-        tmp = {point: {}}
-        for x in self.get_subset(point):
-            temp = {x[2]: False}
-            tmp[point].update(temp)
-        self.cac_huong_rock.update(tmp)
     
-    def reset_point_rock(self,O):
-        if O.is_day_da():
-            row_current, col_current = O.vi_tri_vien_da_hien_tai
-            row, col =O.point
-            if self.map[row_current][col_current] == "*":
-                self.map[row_current][col_current] = "."
-            else:
-                self.map[row_current][col_current] = " "
-            if self.map[row][col] == ".":
-                self.map[row][col] = "*"
-            else:
-                self.map[row][col] = "$"
-        self.update_grid()
-    def UCS(self):
-        print("UCS")
-        return
-    def A_star(self):
-        stone = {}
-        for i in range(self.count_rock):
-            stone[self.ID_rock[i]] = self.khoi_luong_da[i]
-        start = self.start
-        goal_positions = self.destination
-        road = A_star.A_star(self.map,start,goal_positions,stone)
-        if road is None:
-            print("Không tìm được đường đi")
-            return
-        self.read_road(road,0)
-        return
     def load_map(self,name_map):
         self.map = self.readmap(name_map)
 
     def readmap(self,name_map):
         map__ = []
+        self.full = []
         with open(name_map, 'r') as file:
             lines = file.readlines()
+            self.full.append(lines)
             self.khoi_luong_da = [int(x) for x in lines[0].strip().split(" ")]
             for line in lines[1:]:
                 line = line.split("\n")[0]
