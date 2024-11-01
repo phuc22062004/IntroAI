@@ -4,7 +4,10 @@ import time
 import utils
 import time
 import tracemalloc
+import sys
 
+
+sys.setrecursionlimit(999999)
 
 def calculateHeuristic(stones, goal_positions):
     distance = 0
@@ -16,17 +19,20 @@ def calculateHeuristic(stones, goal_positions):
 
 def A_star(maze, start, goal_positions, stones):
     start_time = time.time()
-    
+    tracemalloc.start()
     priority_queue = [(0, 0, start, frozenset(stones.items()), [])]
     visited = set()
-
+    numNodes = 1 
     while priority_queue:
         total_cost, g, current_pos, current_stones, path = heappop(priority_queue)
 
         if goal_reached(dict(current_stones), goal_positions):
             end_time = time.time()
             execution_time = (end_time - start_time) * 1000 
-            return path, g, execution_time
+            memory_peak = tracemalloc.get_traced_memory()[1]
+            tracemalloc.stop()
+            peak_in_MB = memory_peak / (1024 ** 2)
+            return ''.join(path),total_cost, numNodes, execution_time,peak_in_MB
 
         state = (current_pos, current_stones)
         if state in visited:
@@ -37,7 +43,7 @@ def A_star(maze, start, goal_positions, stones):
             stone_weight = stones.get(next_pos, 1)
             new_path = path + [move]
             new_g = g + stone_weight
-
+            numNodes+=1
             heuristic_cost = calculateHeuristic(dict(next_stones), goal_positions)
             total_cost = new_g + heuristic_cost
 
@@ -45,7 +51,11 @@ def A_star(maze, start, goal_positions, stones):
 
     end_time = time.time()
     execution_time = (end_time - start_time) * 1000
-    return None, None, execution_time
+    memory_peak = tracemalloc.get_traced_memory()[1]
+    tracemalloc.stop()
+    peak_in_MB = memory_peak / (1024 ** 2)
+    return None, total_cost, numNodes, execution_time,peak_in_MB
+
 
 def DFS(map:utils.Maze):
     start_time =time.time()

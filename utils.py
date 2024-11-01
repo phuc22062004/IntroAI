@@ -1,5 +1,12 @@
 import copy
 
+
+def write_output(output_file,name,steps,weight,node,time,memory,path):
+    data = f"{name}\nSteps: {steps}, Weight: {weight}, Node: {node}, Time (ms): {time}, Memory (MB): {memory}\n{path}"
+    with open(output_file,"w",encoding="utf-8") as file:
+        file.write(data)
+    
+
 def goal_reached(stones, goal_positions):
     for pos in goal_positions:
         if pos not in stones:
@@ -19,7 +26,7 @@ def get_valid_moves(position, stones, maze):
         next_pos = (position[0] + dx, position[1] + dy)
 
         if is_valid_move(next_pos, stones, maze):
-            moves.append((next_pos, stones.copy(), move))  
+            moves.append((next_pos, stones.copy(), move.lower()))  
 
         if next_pos in stones:
             stone_pos = next_pos
@@ -28,9 +35,10 @@ def get_valid_moves(position, stones, maze):
             if is_valid_push(stone_pos, after_stone_pos, stones, maze):
                 new_stones = stones.copy()
                 new_stones[after_stone_pos] = new_stones.pop(stone_pos)
-                moves.append((next_pos, new_stones, move))
+                moves.append((next_pos, new_stones, move.upper()))
 
     return moves
+
 
 def is_valid_push(stone_pos, after_stone_pos, stones, maze):
     x, y = after_stone_pos
