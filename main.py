@@ -7,8 +7,8 @@ import A_star_DFS
 from PIL import Image,ImageTk
 import utils
 import maze
-import UCS
-
+import UCS_BFS
+from utils import write_output
     
 #class GUI dùng cho giao diện
 class GameGUI:
@@ -118,14 +118,14 @@ class GameGUI:
 
     #thực hiện BFS
     def BFS(self):
-        print(self.ID_rock)
-        print("BFS")
-        return
+        result_list = [' '.join(map(str,self.khoi_luong_da))]+[''.join(row) for row in self.map]
+        new_game = maze.SearchSpace(result_list)
+        UCS_BFS.BFS(new_game)
     
     def UCS(self):
         result_list = [' '.join(map(str,self.khoi_luong_da))]+[''.join(row) for row in self.map]
         new_game = maze.SearchSpace(result_list)
-        UCS.UCS(new_game, 'output.txt')
+        UCS_BFS.UCS(new_game)
 
 
     def A_star(self):
@@ -133,13 +133,11 @@ class GameGUI:
         stone = {self.ID_rock[i]: self.khoi_luong_da[i] for i in range(self.count_rock)}
         start = self.start
         goal_positions = self.destination
-        road, total_cost, execution_time = A_star_DFS.A_star(self.map, start, goal_positions, stone)
-        print(total_cost)
-        print("Execution time:", execution_time ,"(ms)")
+        road, total_cost,numNodes, execution_time,peak_in_MB = A_star_DFS.A_star(self.map, start, goal_positions, stone)
+        write_output("output-01.txt","A*",len(road),total_cost,numNodes,execution_time,peak_in_MB,road)
         if road is None:
             print("Không tìm được đường đi")
             return
-        print(road)
         self.read_road(road, 0)
         return
     
@@ -166,15 +164,8 @@ class GameGUI:
             self.move(self.go_to[road[index].lower()])
             self.root.after(1000, lambda: self.read_road(road,index+1))
         if index == len(road) - 1:
-            messagebox.showinfo("Thông báo", "hoàn thành đường đi")
+            messagebox.showinfo("Thông báo", "Hoàn thành")
 
-
-    def add_x_to_label(self,label, text="X", color="red"):
-        # Sử dụng màu nền của label cha
-        x_label = Label(label, text=text, fg=color, font=("Time News Roman", 24, "bold"), bg=label["bg"])
-        x_label.place(x=20, y=20)  # Điều chỉnh vị trí chữ X sao cho phù hợp
-        return x_label
-    
     def load_map(self,name_map):
         self.map = self.readmap(name_map)
 
@@ -255,7 +246,7 @@ class GameGUI:
         # print(f"{row,col} -> {new_row,new_col}")
         self.update_grid()
         if self.check_game_completed():
-            print("hoàn thánh chúc mừng")
+            print("Hoàn thành")
     
     #reset map
     def reset_game(self,name_map):
