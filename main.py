@@ -158,8 +158,6 @@ class GameGUI:
         self.label_result.config(text=f"weight = {weight}\ndistant={distant}")
         self.read_road(Lo_trinh,0)
     
-    
-
     def read_road(self, road,index):
         if self.is_paused:            
             self.root.after(1000, lambda: self.read_road(road,index))  
@@ -271,20 +269,32 @@ class GameGUI:
         self.create_grid()
     
     #update map
+    def get_key_from_value(self,d, value):
+        for key, val in d.items():
+            if val == value:
+                return key
+        return None  # Trả về None nếu không tìm thấy
     def update_grid(self):
         for i, row in enumerate(self.map):
             for j, cell in enumerate(row):
-                self.labels[i][j].config(image = self.images[cell])
-                self.labels[i][j].image = self.images[cell]
-        tmp = []
-        for i in range(self.count_rock):
-            row, col = self.ID_rock[i]
-            self.label_num[i].destroy()
-            number_label = Label(self.map_GUI, text=str(self.khoi_luong_da[i]), font=("Arial", 12), fg="yellow", bg="black")
-            number_label.grid(row=row, column=col)
-            tmp.append(number_label)
-        self.label_num.clear()
-        self.label_num = tmp
+                # Cập nhật hình ảnh trên mỗi ô
+                self.labels[i][j].delete("all")  # Xóa tất cả nội dung trong Canvas hiện tại
+                self.labels[i][j].create_image(0, 0, anchor="nw", image=self.images[cell])  # Đặt lại ảnh
+
+                # Nếu là ô chứa đá, cập nhật số ngẫu nhiên
+                if cell == "$" or cell == "*":
+                    random_number = self.khoi_luong_da[self.get_key_from_value(self.ID_rock,(i,j))]
+                    # Vẽ hình tròn trắng (nền)
+                    x0, y0 = 20, 20  # Tọa độ góc trên trái của hình tròn
+                    x1, y1 = 50, 50  # Tọa độ góc dưới phải của hình tròn
+                    self.labels[i][j].create_oval(x0, y0, x1, y1, fill="white", outline="black")
+                    self.labels[i][j].create_text(
+                        35, 35,  # Giữa ô
+                        text=str(random_number),
+                        font=("Arial", 12, 'bold'),
+                        fill="black"
+                    )
+
 
     def check_game_completed(self):
         for i, row in enumerate(self.map):
@@ -294,8 +304,7 @@ class GameGUI:
         return True
     
     def create_grid(self):
-        # Load images for different types of cells
-        cell_size =70
+        cell_size = 70
         self.images = {
             '#': ImageTk.PhotoImage(Image.open("images/wall.png").resize((cell_size, cell_size))),
             '@': ImageTk.PhotoImage(Image.open("images/player.png").resize((cell_size, cell_size))),
@@ -305,34 +314,44 @@ class GameGUI:
             '*': ImageTk.PhotoImage(Image.open("images/rock.png").resize((cell_size, cell_size))),
             '+': ImageTk.PhotoImage(Image.open("images/player.png").resize((cell_size, cell_size)))
         }
-        # Create the grid layout
+        
         self.labels = []
         self.destination = []
         self.vi_tri_da = []
         h = 0
+        
         for i, row in enumerate(self.map):
             label_row = []
             for j, cell in enumerate(row):
                 if cell == "$" or cell == "*":
-                    self.ID_rock[self.count_rock] = (i,j)
+                    self.ID_rock[self.count_rock] = (i, j)
                     self.count_rock += 1
-                if cell == "." or cell =="+":
-                    self.destination.append((i,j))
-                if cell in ("+","@"):
-                    self.start = (i,j)
+                if cell == "." or cell == "+":
+                    self.destination.append((i, j))
+                if cell in ("+", "@"):
+                    self.start = (i, j)
+                    
                 image = self.images.get(cell)
-                if image:  
-                    lbl = Label(self.map_GUI, image=image,text=11)
-                    lbl.grid(row=i, column=j)
-                    lbl.image = image  # Store reference to avoid garbage collection
-                # Nếu là ô chứa đá, thêm số ngẫu nhiên
+                if image:
+                    # Sử dụng Canvas để hiển thị hình ảnh và số
+                    canvas = Canvas(self.map_GUI, width=cell_size, height=cell_size, highlightthickness=0)
+                    canvas.grid(row=i, column=j)
+                    canvas.create_image(0, 0, anchor="nw", image=image)
+                    
                     if cell == "$" or cell == "*":
-                        random_number = self.khoi_luong_da[h]  # Số ngẫu nhiên từ 1 đến 100
-                        h+=1
-                        number_label = Label(self.map_GUI, text=str(random_number), font=("Arial", 12), fg="yellow", bg="black")
-                        number_label.grid(row=i, column=j)
-                        self.label_num.append(number_label)
-                    label_row.append(lbl)
+                        # Thêm số ngẫu nhiên lên ô chứa đá
+                        random_number = self.khoi_luong_da[h]
+                        h += 1
+                    # Vẽ hình tròn trắng ở giữa Canvas
+                        canvas.create_oval(cell_size // 4, cell_size // 4, 3 * cell_size // 4, 3 * cell_size // 4, fill="white", outline="black")
+                        # Thêm số vào giữa hình tròn
+                        canvas.create_text(cell_size // 2, cell_size // 2, text=str(random_number), font=("Arial", 12, 'bold'), fill="black")
+                        # Lưu lại Canvas vào danh sách để có thể cập nhật sau
+                        self.label_num.append(canvas)
+                        
+                    # Lưu Canvas vào hàng của grid
+                    label_row.append(canvas)
+            
             self.labels.append(label_row)
 def load_file():
     folder_path = "input"
