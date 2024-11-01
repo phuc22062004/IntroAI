@@ -58,16 +58,16 @@ def DFS(map:utils.Maze):
     G = utils.Statu_rock(tmp)
     Open = [S]
     closed = []
-    statu_ston = map.DFS_step_rock(Open,closed)
+    statu_ston,numNode = map.DFS_step_rock(Open,closed)
     tmp = statu_ston
     if statu_ston is None:
         map.reset()
         return None, "không thể đẩy đá"
     statu_ston = statu_ston[::-1]
     map.reset()
-    Lo_Trinh = map.find_road(statu_ston)
+    Lo_Trinh, weight = map.find_road(statu_ston)
     duration = (time.time() - start_time) * 1000
     memory_peak = tracemalloc.get_traced_memory()[1]
     if Lo_Trinh != None:
-        return Lo_Trinh,duration,memory_peak
-    return None,duration, memory_peak
+        return Lo_Trinh,duration,memory_peak,weight,numNode
+    return None,duration, memory_peak, weight,numNode

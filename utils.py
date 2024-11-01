@@ -70,11 +70,12 @@ class Statu_rock:
 
 
 class Maze:
-    def __init__(self,map,ID_rock,count_rock,cac_huong_rock,destination,start):
+    def __init__(self,map,ID_rock,count_rock,cac_huong_rock,destination,start,weights):
         self.map = copy.deepcopy(map)
         self.root = copy.deepcopy(map)
+        self.weights = weights
         self.start = start
-        self.ID_rock = ID_rock
+        self.ID_rock = copy.deepcopy(ID_rock)
         self.count_rock = count_rock
         self.cac_huong_rock = cac_huong_rock#lu cac hướng viên đá có thể đi và bật 1 nếu viên đá đã đi hướng đó rồi
         self.destination = destination
@@ -116,12 +117,9 @@ class Maze:
         ]
         subset = [self.check_map(row, col, func, direction) for direction, func in directions]
         return [item for item in subset if item is not None]
-    #hàm dùng để kiểm tra đó có phải là đích hay không thỏa điều kiện dừng chứ
     def is_destination(self):
-        for row, col in self.destination:
-            if self.map[row][col] in (".","+"):
-                return False
-        return True
+        # Kiểm tra nếu tất cả điểm đích đều được đá phủ
+        return all(self.map[row][col] not in (".", "+") for row, col in self.destination)
     def path(self,O,road):
         road.append(O)
         if O.par != None:
@@ -140,13 +138,6 @@ class Maze:
     def checkInArray_player(self,tmp, Open):
         for x in Open:
             if tmp.point == x.point:
-                return True
-        return False
-    def check_can_move_rock(self):
-        vi_tri_da = self.find_rock()
-        for x in vi_tri_da:
-            tap_con_vi_x_y = self.get_subset(x)
-            if len(tap_con_vi_x_y) > 2:
                 return True
         return False
     def move_rock_to_point(self,rock_point ,point ):   
@@ -230,6 +221,7 @@ class Maze:
     
     # dùng DFS để tìm đường đi cho đá
     def DFS_step_rock(self, Open, Closed):
+        numNode = 1
         while len(Open) > 0:
             O = Open.pop(0)
             self.move_rock_to(O.statu)
@@ -238,7 +230,7 @@ class Maze:
             if self.is_destination():
                 road = []
                 Closed.pop()
-                return self.path(O, road)
+                return self.path(O, road),numNode
 
             pos = 0
             list__ = []
@@ -246,10 +238,10 @@ class Maze:
                 tmp = x
                 tmp.par = O
                 list__.append(tmp)
-                
                 ok1 = self.checkInArray_rock(tmp, Open)
                 ok2 = self.checkInArray_rock(tmp, Closed)
                 if not ok1 and not ok2:
+                    numNode += 1
                     Open.insert(pos, tmp)
                     pos += 1
 
@@ -307,8 +299,10 @@ class Maze:
         Open = []
         closed = []
         Lo_trinh = ''
+        weight = 0
         for i in range(1,len(statu_ston)):
             ID_rock = statu_ston[i].ID_rock
+            weight += self.weights[ID_rock]
             point_ston = statu_ston[i-1].statu[ID_rock].point
             direct_ston = statu_ston[i].statu[ID_rock].tracking
             point_ton_ = statu_ston[i].statu[ID_rock].point
@@ -330,7 +324,7 @@ class Maze:
                 Lo_trinh += x.direction.lower()
             Lo_trinh += point_player[3].upper()
         self.reset()
-        return Lo_trinh
+        return Lo_trinh,weight
     
     def find_destination(self):
         vi_tri_dich = []

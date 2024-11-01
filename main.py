@@ -24,6 +24,7 @@ class GameGUI:
         self.cac_huong_rock = {}#lu cac hướng viên đá có thể đi và bật 1 nếu viên đá đã đi hướng đó rồi
         self.root = root  # Assign the root to an instance attribute
         self.is_day_da = False
+        self.label_num = []
         #tạo bảng điều khiển
         self.left_frame = Frame(root,width=500,height=700, bg="grey")
         self.left_frame.grid(row=0,column=0,padx=10,pady=5)
@@ -117,7 +118,7 @@ class GameGUI:
 
     #thực hiện BFS
     def BFS(self):
-        print(self.map)
+        print(self.ID_rock)
         print("BFS")
         return
     
@@ -145,14 +146,16 @@ class GameGUI:
     
     def Run_DFS(self):
         print("DFS: ")
-        map_ = utils.Maze(self.map,self.ID_rock,self.count_rock,self.cac_huong_rock,self.destination,self.start)
-        Lo_trinh,time,  memory= A_star_DFS.DFS(map_)
-        print(Lo_trinh)
+        map_ = utils.Maze(self.map,self.ID_rock,self.count_rock,self.cac_huong_rock,self.destination,self.start,self.khoi_luong_da)
+        Lo_trinh,time,  memory, weight,numNode= A_star_DFS.DFS(map_)
         distant = 0
+        print("Weight:",weight)
+        print("so node: ",numNode)
         print("time: ", time,"(ms)")
         print("memory: ",memory,"(MB)")
         distant = len(Lo_trinh)
-        self.label_result.config(text=f"weight = 0\ndistant={distant}")
+        self.update_grid()
+        self.label_result.config(text=f"weight = {weight}\ndistant={distant}")
         self.read_road(Lo_trinh,0)
     
     
@@ -227,7 +230,7 @@ class GameGUI:
                 return
             elif self.map[rock_new_row][rock_new_col] == "#":
                 return
-            self.is_day_da = True
+
         if self.map[new_row][new_col] == "*":
             if self.map[rock_new_row][rock_new_col] == '.':
                 self.map[rock_new_row][rock_new_col] = '*'
@@ -273,12 +276,23 @@ class GameGUI:
             for j, cell in enumerate(row):
                 self.labels[i][j].config(image = self.images[cell])
                 self.labels[i][j].image = self.images[cell]
+        tmp = []
+        for i in range(self.count_rock):
+            row, col = self.ID_rock[i]
+            self.label_num[i].destroy()
+            number_label = Label(self.map_GUI, text=str(self.khoi_luong_da[i]), font=("Arial", 12), fg="yellow", bg="black")
+            number_label.grid(row=row, column=col)
+            tmp.append(number_label)
+        self.label_num.clear()
+        self.label_num = tmp
+
     def check_game_completed(self):
         for i, row in enumerate(self.map):
             for j, cell in enumerate(row):
                 if(cell == '.' or cell == '+'):
                     return False
         return True
+    
     def create_grid(self):
         # Load images for different types of cells
         cell_size =70
@@ -295,6 +309,7 @@ class GameGUI:
         self.labels = []
         self.destination = []
         self.vi_tri_da = []
+        h = 0
         for i, row in enumerate(self.map):
             label_row = []
             for j, cell in enumerate(row):
@@ -307,12 +322,18 @@ class GameGUI:
                     self.start = (i,j)
                 image = self.images.get(cell)
                 if image:  
-                    lbl = Label(self.map_GUI, image=image)
+                    lbl = Label(self.map_GUI, image=image,text=11)
                     lbl.grid(row=i, column=j)
                     lbl.image = image  # Store reference to avoid garbage collection
+                # Nếu là ô chứa đá, thêm số ngẫu nhiên
+                    if cell == "$" or cell == "*":
+                        random_number = self.khoi_luong_da[h]  # Số ngẫu nhiên từ 1 đến 100
+                        h+=1
+                        number_label = Label(self.map_GUI, text=str(random_number), font=("Arial", 12), fg="yellow", bg="black")
+                        number_label.grid(row=i, column=j)
+                        self.label_num.append(number_label)
                     label_row.append(lbl)
             self.labels.append(label_row)
-
 def load_file():
     folder_path = "input"
     array_name_file = []
