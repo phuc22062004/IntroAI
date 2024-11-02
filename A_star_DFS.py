@@ -78,6 +78,10 @@ def DFS(map:utils.Maze):
     Lo_Trinh, weight = map.find_road(statu_ston)
     duration = (time.time() - start_time) * 1000
     memory_peak = tracemalloc.get_traced_memory()[1]
+    tracemalloc.stop()
+    peak_in_MB = memory_peak/ (1024 ** 2)
     if Lo_Trinh != None:
-        return Lo_Trinh,duration,memory_peak,weight,numNode
-    return None,duration, memory_peak, weight,numNode
+        return f'''Steps: {len(Lo_Trinh)}, Weight: {weight}, Node: {numNode}, Time(ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}
+        {Lo_Trinh}''', Lo_Trinh
+    return f'''Steps: {0}, Weight: {weight}, Node: {numNode}, Time(ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}
+        {None}''', None

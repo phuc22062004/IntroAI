@@ -28,8 +28,9 @@ def BFS(game: SearchSpace) -> str:
     memory_peak = tracemalloc.get_traced_memory()[1]
     tracemalloc.stop()
     peak_in_MB = memory_peak / (1024 ** 2)
+    road = game.path_construction(goal)
     return f'''Steps: {goal.steps}, Weight: {goal.weight}, Node: {nodes_created}, Time (ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}
-{game.path_construction(goal)}'''
+{road}''', road
 
 def UCS(game: SearchSpace) -> str:
     start_time = time.time()
@@ -83,8 +84,9 @@ def UCS(game: SearchSpace) -> str:
     memory_peak = tracemalloc.get_traced_memory()[1]
     tracemalloc.stop()
     peak_in_MB = memory_peak / (1024 ** 2)
+    road = game.path_construction(goal)
     return f'''Steps: {goal.steps}, Weight: {goal.weight}, Node: {nodes_created}, Time (ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}
-{game.path_construction(goal)}'''
+{road}''', road
 
 # input_test = 'input.txt'
 # input_map = open(input_test, 'r', encoding = 'utf-8').read().strip().split('\n')

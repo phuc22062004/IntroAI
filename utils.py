@@ -252,6 +252,7 @@ class Maze:
                     numNode += 1
                     Open.insert(pos, tmp)
                     pos += 1
+        return None, numNode
 
     #hàm tạo danh sách node
     def create_list_node(self,pointes):

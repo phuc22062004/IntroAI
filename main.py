@@ -19,6 +19,8 @@ class GameGUI:
             'r': "Right",
             'l': "Left"
         }
+        self.step = 0
+        self.weight = 0
         self.ID_rock = {}
         self.count_rock = 0
         self.cac_huong_rock = {}#lu cac hướng viên đá có thể đi và bật 1 nếu viên đá đã đi hướng đó rồi
@@ -86,7 +88,7 @@ class GameGUI:
         self.display_result = Frame(self.right_frame,width=900,height=200,padx=5,pady=10, bg="white")
         self.display_result.grid(row=1,column=0)
         Label(self.display_result,text="Result: ",font=("Time News Roman", 13, "bold")).grid(row=0,column=0)
-        self.label_result = Label(self.display_result,text="weigth = 0\ndistant = 0",font=("Time News Roman", 13),width=60)
+        self.label_result = Label(self.display_result,text="weigth = 0\nstep = 0",font=("Time News Roman", 13),width=60)
         self.label_result.grid(row=1,column=0)
 #---------------------------tạo hàm-----------------------------
 #---------------------------------------------------------------
@@ -120,7 +122,9 @@ class GameGUI:
     def BFS(self):
         result_list = [' '.join(map(str,self.khoi_luong_da))]+[''.join(row) for row in self.map]
         new_game = maze.SearchSpace(result_list)
-        UCS_BFS.BFS(new_game)
+        result, road = UCS_BFS.BFS(new_game)
+        print(result, road)
+        # self.read_road(road,0)
     
     def UCS(self):
         result_list = [' '.join(map(str,self.khoi_luong_da))]+[''.join(row) for row in self.map]
@@ -145,15 +149,11 @@ class GameGUI:
     def Run_DFS(self):
         print("DFS: ")
         map_ = utils.Maze(self.map,self.ID_rock,self.count_rock,self.cac_huong_rock,self.destination,self.start,self.khoi_luong_da)
-        Lo_trinh,time,  memory, weight,numNode= A_star_DFS.DFS(map_)
-        distant = 0
-        print("Weight:",weight)
-        print("so node: ",numNode)
-        print("time: ", time,"(ms)")
-        print("memory: ",memory,"(MB)")
-        distant = len(Lo_trinh)
+        result, Lo_trinh= A_star_DFS.DFS(map_)
+        if result is None:
+            messagebox.showwarning("lỗi", "không tìm thấy đường đi !!!")
+            return
         self.update_grid()
-        self.label_result.config(text=f"weight = {weight}\ndistant={distant}")
         self.read_road(Lo_trinh,0)
     
     def read_road(self, road,index):
@@ -192,7 +192,6 @@ class GameGUI:
     #di chuyen player
     def move_player(self, event):
         row, col = self.player_position
-
         if event.keysym == "Up":
             new_row, new_col = row -1 , col
         elif event.keysym == "Down":
@@ -233,6 +232,7 @@ class GameGUI:
                 return 
         for i in range(self.count_rock):
             if self.ID_rock[i] == (new_row,new_col):
+                self.weight += self.khoi_luong_da[i]
                 self.ID_rock[i] = (rock_new_row,rock_new_col)
         if(self.map[row][col] == '+'):
             self.map[row][col] = '.'
@@ -244,6 +244,7 @@ class GameGUI:
             self.map[new_row][new_col]= "@"
         self.player_position = (new_row, new_col)
         # print(f"{row,col} -> {new_row,new_col}")
+        self.step += 1
         self.update_grid()
         if self.check_game_completed():
             print("Hoàn thành")
@@ -251,13 +252,13 @@ class GameGUI:
     #reset map
     def reset_game(self,name_map):
         self.count_rock = 0
-
         for row in self.labels:
             for label in row:
                 label.destroy()
         self.load_map(name_map)
         self.player_position = self.find_player_position()
         self.create_grid()
+        self.update_grid()
     
     #update map
     def get_key_from_value(self,d, value):
@@ -266,6 +267,7 @@ class GameGUI:
                 return key
         return None  # Trả về None nếu không tìm thấy
     def update_grid(self):
+        self.label_result.config(text=f"weight = {self.weight}\nstep={self.step}")
         for i, row in enumerate(self.map):
             for j, cell in enumerate(row):
                 # Cập nhật hình ảnh trên mỗi ô
@@ -296,6 +298,8 @@ class GameGUI:
     
     def create_grid(self):
         cell_size = 70
+        self.step = 0
+        self.weight = 0
         self.images = {
             '#': ImageTk.PhotoImage(Image.open("images/wall.png").resize((cell_size, cell_size))),
             '@': ImageTk.PhotoImage(Image.open("images/player.png").resize((cell_size, cell_size))),
