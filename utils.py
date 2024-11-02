@@ -19,7 +19,7 @@ def is_valid_move(position, stones, maze):
         return False
     return True
 
-def get_valid_moves(position, stones, maze):
+def get_valid_moves(position, stones, maze, stone_weights):
     moves = []
     directions = {'u': (-1, 0), 'd': (1, 0), 'l': (0, -1), 'r': (0, 1)}
     for move, (dx, dy) in directions.items():
