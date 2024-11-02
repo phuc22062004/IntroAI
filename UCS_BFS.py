@@ -19,11 +19,16 @@ def BFS(game: SearchSpace) -> str:
         game.open_set += new_nodes
 
         open_set_capacity = len(game.open_set)
-
         if game.goalReached(game.closed_set[-1]):
             goal = game.closed_set[-1]
             break
-    
+    if goal is None:
+        duration = (time.time() - start_time) * 1000
+        memory_peak = tracemalloc.get_traced_memory()[1]
+        tracemalloc.stop()
+        peak_in_MB = memory_peak / (1024 ** 2)
+        return f'''Steps: {0}, Weight: {0}, Node: {nodes_created}, Time (ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}
+        {None}''', None            
     duration = (time.time() - start_time) * 1000
     memory_peak = tracemalloc.get_traced_memory()[1]
     tracemalloc.stop()
@@ -87,18 +92,3 @@ def UCS(game: SearchSpace) -> str:
     road = game.path_construction(goal)
     return f'''Steps: {goal.steps}, Weight: {goal.weight}, Node: {nodes_created}, Time (ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}
 {road}''', road
-
-# input_test = 'input.txt'
-# input_map = open(input_test, 'r', encoding = 'utf-8').read().strip().split('\n')
-# new_game = SearchSpace(input_map)
-# output = BFS(new_game)
-# print(output)
-
-# # Output conversion !?
-# moves = output.split('\n')[1]
-# moves = moves.replace('L', 'Left ').replace('l', 'Left ')
-# moves = moves.replace('U', 'Up ').replace('u', 'Up ')
-# moves = moves.replace('R', 'Right ').replace('r', 'Right ')
-# moves = moves.replace('D', 'Down ').replace('d', 'Down ')
-# moves = moves.strip().split(' ')
-# print(moves)

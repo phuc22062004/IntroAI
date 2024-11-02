@@ -19,6 +19,10 @@ class GameGUI:
             'r': "Right",
             'l': "Left"
         }
+        self.bfs = ''
+        self.dfs = ''
+        self.a_star = ''
+        self.ucs = ''
         self.step = 0
         self.weight = 0
         self.ID_rock = {}
@@ -68,13 +72,11 @@ class GameGUI:
         self.create_grid()
         self.root.focus_set()
         self.root.bind("<KeyPress>", self.move_player)
-        
         #tạo Frame chứ danh sách map
         self.frame_choose_map = Frame(self.left_frame,width=1000,height=500,padx=10,pady=10,bg="white")
         self.frame_choose_map.grid(row=1,column=0)
         #hiển thị lable
         Label(self.frame_choose_map,text="Select map",font=("Time News Roman", 13)).grid(row=0,column=0)
-
         #compobox hiển thị danh sách list
         self.listbox = ttk.Combobox(self.frame_choose_map,values=name_map, state="readonly")
         self.listbox.current(0)
@@ -95,6 +97,20 @@ class GameGUI:
     def reset_this(self):
         selected_item = self.listbox.get()
         self.reset_game(selected_item)
+
+    def out_road(self):
+        map_ = utils.Maze(self.map,self.ID_rock,self.count_rock,self.cac_huong_rock,self.destination,self.start,self.khoi_luong_da)
+        result, self.dfs= A_star_DFS.DFS(map_)
+
+
+        stone = {self.ID_rock[i]: self.khoi_luong_da[i] for i in range(self.count_rock)}
+        start = self.start
+        goal_positions = self.destination
+        self.a_star, total_cost,numNodes, execution_time,peak_in_MB = A_star_DFS.A_star(self.map, start, goal_positions, stone)
+
+
+
+
     #hàm xử lý sự kiện khi chọn một phần tử trong Listbox
     def on_select(self,event):
         selected_item = self.listbox.get()
@@ -133,30 +149,15 @@ class GameGUI:
 
 
     def A_star(self):
-        print("A*:")
-        stone = {self.ID_rock[i]: self.khoi_luong_da[i] for i in range(self.count_rock)}
-        start = self.start
-        goal_positions = self.destination
-        road, total_cost,numNodes, execution_time,peak_in_MB = A_star_DFS.A_star(self.map, start, goal_positions, stone)
-        write_output("output-01.txt","A*",len(road),total_cost,numNodes,execution_time,peak_in_MB,road)
-        if road is None:
-            print("Không tìm được đường đi")
-            return
-        self.read_road(road, 0)
+        self.read_road(self.a_star, 0)
         return
     
-    
     def Run_DFS(self):
-        print("DFS: ")
-        map_ = utils.Maze(self.map,self.ID_rock,self.count_rock,self.cac_huong_rock,self.destination,self.start,self.khoi_luong_da)
-        result, Lo_trinh= A_star_DFS.DFS(map_)
-        if result is None:
-            messagebox.showwarning("lỗi", "không tìm thấy đường đi !!!")
-            return
-        self.update_grid()
-        self.read_road(Lo_trinh,0)
+        self.read_road(self.dfs,0)
     
     def read_road(self, road,index):
+        if road is None:
+            return
         if self.is_paused:            
             self.root.after(1000, lambda: self.read_road(road,index))  
             return       
@@ -343,11 +344,12 @@ class GameGUI:
                         canvas.create_text(cell_size // 2, cell_size // 2, text=str(random_number), font=("Arial", 12, 'bold'), fill="black")
                         # Lưu lại Canvas vào danh sách để có thể cập nhật sau
                         self.label_num.append(canvas)
-                        
                     # Lưu Canvas vào hàng của grid
                     label_row.append(canvas)
-            
             self.labels.append(label_row)
+        self.out_road()
+
+
 def load_file():
     folder_path = "input"
     array_name_file = []
@@ -360,7 +362,6 @@ def load_file():
 if __name__ == "__main__":
     root = Tk()
     root.config(bg = "black")
-
     root.grid_columnconfigure(0,weight=1)
     root.grid_columnconfigure(1,weight=2)
 

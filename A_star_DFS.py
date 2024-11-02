@@ -9,8 +9,6 @@ import sys
 
 sys.setrecursionlimit(999999)
 
-
-
 def heuristic(position, stones, goal_positions, heaviest_stone_weight):
     total_dist = 0
     for stone_pos, weight in stones.items():
@@ -45,8 +43,10 @@ def A_star(maze, start, goal_positions, stones):
             memory_peak = tracemalloc.get_traced_memory()[1]
             tracemalloc.stop()
             peak_in_MB = memory_peak / (1024 ** 2)
-            return ''.join(path), total_cost, numNodes, execution_time, peak_in_MB
-
+            road = ''.join(path)
+            return   f'''Steps: {len(path)}, Weight: ''' #road ,total_cost, numNodes, execution_time, peak_in_MB
+# f'''Steps: {len(Lo_Trinh)}, Weight: {weight}, Node: {numNode}, Time(ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}
+#     {Lo_Trinh}''', Lo_Trinh
         state = (current_pos, current_stones)
         if state in visited:
             continue
@@ -88,7 +88,12 @@ def DFS(map:utils.Maze):
     tmp = statu_ston
     if statu_ston is None:
         map.reset()
-        return None, "không thể đẩy đá"
+        duration = (time.time() - start_time) * 1000
+        memory_peak = tracemalloc.get_traced_memory()[1]
+        tracemalloc.stop()
+        peak_in_MB = memory_peak/ (1024 ** 2)
+        return f'''Steps: {0}, Weight: {0}, Node: {numNode}, Time(ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}
+        {None}''', None
     statu_ston = statu_ston[::-1]
     map.reset()
     Lo_Trinh, weight = map.find_road(statu_ston)
@@ -96,8 +101,5 @@ def DFS(map:utils.Maze):
     memory_peak = tracemalloc.get_traced_memory()[1]
     tracemalloc.stop()
     peak_in_MB = memory_peak/ (1024 ** 2)
-    if Lo_Trinh != None:
-        return f'''Steps: {len(Lo_Trinh)}, Weight: {weight}, Node: {numNode}, Time(ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}
-        {Lo_Trinh}''', Lo_Trinh
-    return f'''Steps: {0}, Weight: {weight}, Node: {numNode}, Time(ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}
-        {None}''', None
+    return f'''Steps: {len(Lo_Trinh)}, Weight: {weight}, Node: {numNode}, Time(ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}
+    {Lo_Trinh}''', Lo_Trinh
