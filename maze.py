@@ -1,4 +1,5 @@
 import copy
+import numpy as np
 
 class Node:
     def __init__(self, agent_pos: tuple[int], prev_state: int = -1, list_id: int = 0,
@@ -79,9 +80,6 @@ class SearchSpace:
         # Open set appendment should be implemented in the algorithm
         self.open_set: list[Node] = [Node(self.start)]
         self.closed_set: list[Node] = []
-
-    def get_number_of_cells(self) -> int:
-        return self.row * self.column
     
     def get_neighbors(self, position: tuple[int]):
         # Get all valid directions
@@ -98,36 +96,35 @@ class SearchSpace:
         
         return neighbors
     
+    def stonesState(self, node: Node) -> list[tuple[int]]:
+        return self.stones_state_list[node.stones_list_id]
+    
     def isWall(self, position: tuple[int]):
-        return self.wall_map[position[0]][position[1]]
+        return position is None or self.wall_map[position[0]][position[1]]
 
-    # Check if there is any stone at given position on current state
-    def isStone(self, position: tuple[int], node: Node) -> bool:
-        return (position in self.stones_state_list[node.stones_list_id])
+    # Check if there is any stone at given position on current stone state
+    def isStone(self, position: tuple[int], stones_state: list[tuple[int]]) -> bool:
+        return (position in stones_state)
 
-    def isEmpty(self, position: tuple[int], node: Node) -> bool:
-        return (not (self.isStone(position, node) or self.isWall(position)))
+    def isEmpty(self, position: tuple[int], stones_state: list[tuple[int]]) -> bool:
+        return (not (self.isStone(position, stones_state) or self.isWall(position)))
 
     # Check if this stone state is already exists
     def isOldStoneState(self, stones_state: list[tuple[int]]) -> bool:
-        for state in self.stones_state_list:
-            if stones_state == state:
-                return True
+        if stones_state in self.stones_state_list:
+            return True
         
         return False
     
     def goalReached(self, node: Node):
-        for stone in self.stones_state_list[node.stones_list_id]:
+        for stone in self.stonesState(node):
             if stone not in self.switches:
                 return False
             
         return True
     
     # Check if the agent is moving into loops
-    def isLooped(self, curr_agent_pos: tuple[int], stones_state_id: int):
-        prev_state_id = len(self.closed_set) - 1
-        prev_of_prev_id = self.closed_set[prev_state_id].prev_state
-
+    def isLooped(self, curr_agent_pos: tuple[int], stones_state_id: int, prev_of_prev_id: int):
         while prev_of_prev_id > -1:
             prev_of_prev_state = self.closed_set[prev_of_prev_id]
             if (curr_agent_pos == prev_of_prev_state.agent_pos
@@ -142,62 +139,121 @@ class SearchSpace:
         
         return False
     
-    # Check if the surrounding has any wall cell
-    def surroundingCheck(self, position: tuple[int]) -> list[bool]:
+    # Check if there is any stone being pushed "back and forth"
+    def stoneInLoop(self, node: Node, stones_state: list[tuple[int]]):
+        if self.stonesState(node) == stones_state:
+            return False
+        
+        prev_state = node.prev_state
+        while prev_state > -1:
+            prev_node = self.closed_set[prev_state]
+            if self.stones_state_list[prev_node.stones_list_id] == stones_state:
+                return True
+            
+            prev_state = prev_node.prev_state
+            
+        return False
+    
+    # Check if there is any alternative move exists
+    def isAlternativeMove(self, curr_agent_pos: tuple[int], stones_state: list[tuple[int]], steps: int, weight: int):
+        for state in self.open_set:
+            if (curr_agent_pos == state.agent_pos and stones_state == self.stonesState(state)
+                and steps == state.steps and weight == state.weight):
+                return True
+        
+        return False
+    
+    # Check if the surrounding has any obstacle
+    def neighborStatus(self, position: tuple[int], stones_state: list[tuple[int]]) -> list[bool]:
         neighbor_cells = self.get_neighbors(position)
 
-        neighbor_isWall = []
+        neighbors_isObstacle = []
         for neighbor in neighbor_cells:
             if neighbor is None:
-                neighbor_isWall.append(True)
-            elif neighbor is not None and self.isWall(neighbor):
-                neighbor_isWall.append(True)
+                neighbors_isObstacle.append(True)
+            elif neighbor is not None and not self.isEmpty(neighbor, stones_state):
+                neighbors_isObstacle.append(True)
             else:
-                neighbor_isWall.append(False)
+                neighbors_isObstacle.append(False)
         
-        return neighbor_isWall
+        return neighbors_isObstacle
+    
+    def isRedundant(self, new_agent_pos: tuple[int], prev_node: Node, stones_state: list[tuple[int]]):
+        def agent_stone_distance(agent_pos: tuple[int], stones_state: list[tuple[int]]):
+            stone_pos = np.array(stones_state)
+            agent_stone_diff = stone_pos - np.array(agent_pos)
+            Manhattan_dist = np.sum(np.abs(agent_stone_diff), axis = -1)
+            return Manhattan_dist
+        
+        # Check non-pushing moves
+        if (self.isLooped(new_agent_pos, prev_node.stones_list_id, prev_node.prev_state)
+            or self.isAlternativeMove(new_agent_pos, stones_state, prev_node.steps + 1, prev_node.weight)):
+            return True
+        
+        # Check pushing moves
+        elif self.stoneInLoop(prev_node, stones_state):
+            return True
+        
+        else:
+            # Check if agent is moving further from all stones
+            agent_stone_dist_curr = agent_stone_distance(self.closed_set[-1].agent_pos, self.stonesState(prev_node))
+            
+            surrounding_isEmpty = True
+            for neighbor in self.get_neighbors(new_agent_pos):
+                for sub_neighbor_status in self.neighborStatus(neighbor, stones_state):
+                    surrounding_isEmpty = surrounding_isEmpty and not sub_neighbor_status
+
+            agent_stone_dist_new = agent_stone_distance(new_agent_pos, stones_state)
+            if surrounding_isEmpty and np.all(agent_stone_dist_curr + 1 < agent_stone_dist_new):
+                return True
+        
+        return False
 
     # Agent move
     def move_up(self, node: Node):
-        if node.agent_pos[0] > 0 and self.isEmpty((node.agent_pos[0] - 1, node.agent_pos[1]), node):
-            if self.isLooped((node.agent_pos[0] - 1, node.agent_pos[1]), node.stones_list_id):
+        if node.agent_pos[0] > 0 and self.isEmpty((node.agent_pos[0] - 1, node.agent_pos[1]), self.stonesState(node)):
+            new_pos = (node.agent_pos[0] - 1, node.agent_pos[1])
+            if self.isRedundant(new_pos, node, self.stonesState(node)):
                 return None
 
-            newState = Node((node.agent_pos[0] - 1, node.agent_pos[1]), len(self.closed_set) - 1,
-                            node.stones_list_id, node.steps + 1, node.weight, 'u')
+            newState = Node(new_pos, len(self.closed_set) - 1, node.stones_list_id,
+                            node.steps + 1, node.weight, 'u')
             return newState
         
         return None
 
     def move_down(self, node: Node):
-        if node.agent_pos[0] < self.row - 1 and self.isEmpty((node.agent_pos[0] + 1, node.agent_pos[1]), node):
-            if self.isLooped((node.agent_pos[0] + 1, node.agent_pos[1]), node.stones_list_id):
+        if node.agent_pos[0] < self.row - 1 and self.isEmpty((node.agent_pos[0] + 1, node.agent_pos[1]), self.stonesState(node)):
+            new_pos = (node.agent_pos[0] + 1, node.agent_pos[1])
+            if self.isRedundant(new_pos, node, self.stonesState(node)):
                 return None
 
-            newState = Node((node.agent_pos[0] + 1, node.agent_pos[1]), len(self.closed_set) - 1,
-                            node.stones_list_id, node.steps + 1, node.weight, 'd')
+            newState = Node(new_pos, len(self.closed_set) - 1, node.stones_list_id,
+                            node.steps + 1, node.weight, 'd')
             return newState
         
         return None
 
     def move_left(self, node: Node):
-        if node.agent_pos[1] > 0 and self.isEmpty((node.agent_pos[0], node.agent_pos[1] - 1), node):
-            if self.isLooped((node.agent_pos[0], node.agent_pos[1] - 1), node.stones_list_id):
+        if node.agent_pos[1] > 0 and self.isEmpty((node.agent_pos[0], node.agent_pos[1] - 1), self.stonesState(node)):
+            new_pos = (node.agent_pos[0], node.agent_pos[1] - 1)
+            if self.isRedundant(new_pos, node, self.stonesState(node)):
                 return None
 
-            newState = Node((node.agent_pos[0], node.agent_pos[1] - 1), len(self.closed_set) - 1,
-                            node.stones_list_id, node.steps + 1, node.weight, 'l')
+            newState = Node(new_pos, len(self.closed_set) - 1, node.stones_list_id,
+                            node.steps + 1, node.weight, 'l')
             return newState
         
         return None
 
     def move_right(self, node: Node):
-        if node.agent_pos[1] < self.column - 1 and self.isEmpty((node.agent_pos[0], node.agent_pos[1] + 1), node):
-            if self.isLooped((node.agent_pos[0], node.agent_pos[1] + 1), node.stones_list_id):
+        if node.agent_pos[1] < self.column - 1 and self.isEmpty((node.agent_pos[0], node.agent_pos[1] + 1), self.stonesState(node)):
+            new_pos = (node.agent_pos[0], node.agent_pos[1] + 1)
+            if self.isRedundant(new_pos, node, self.stonesState(node)):
                 return None
 
-            newState = Node((node.agent_pos[0], node.agent_pos[1] + 1), len(self.closed_set) - 1,
-                            node.stones_list_id, node.steps + 1, node.weight, 'r')
+            newState = Node(new_pos, len(self.closed_set) - 1, node.stones_list_id,
+                            node.steps + 1, node.weight, 'r')
             return newState
         
         return None
@@ -206,22 +262,26 @@ class SearchSpace:
     def push_up(self, node: Node):
         new_pos = (node.agent_pos[0] - 1, node.agent_pos[1])
 
-        if new_pos[0] > 0 and self.isStone(new_pos, node):
+        if new_pos[0] > 0 and self.isStone(new_pos, self.stonesState(node)):
             # Valid stone
             new_stone_pos = (new_pos[0] - 1, new_pos[1])
 
-            if self.isEmpty(new_stone_pos, node):
-                new_stones_state = copy.deepcopy(self.stones_state_list[node.stones_list_id])
+            if self.isEmpty(new_stone_pos, self.stonesState(node)):
+                new_stones_state = copy.deepcopy(self.stonesState(node))
                 stoneID = new_stones_state.index(new_pos)
 
                 # Add new stone state to the list
                 new_stones_state[stoneID] = new_stone_pos
-                if self.isOldStoneState(new_stones_state):
+                
+                if self.isRedundant(new_pos, node, new_stones_state):
                     return None
+                if not self.isOldStoneState(new_stones_state):
+                    self.stones_state_list.append(new_stones_state)
+                    new_stones_state_id = len(self.stones_state_list) - 1
+                else:
+                    new_stones_state_id = self.stones_state_list.index(new_stones_state)
 
-                self.stones_state_list.append(new_stones_state)
-
-                newState = Node(new_pos, len(self.closed_set) - 1, len(self.stones_state_list) - 1,
+                newState = Node(new_pos, len(self.closed_set) - 1, new_stones_state_id,
                                 node.steps + 1, node.weight + self.stone_weights[stoneID], 'U')
                 
                 return newState
@@ -231,22 +291,26 @@ class SearchSpace:
     def push_down(self, node: Node):
         new_pos = (node.agent_pos[0] + 1, node.agent_pos[1])
 
-        if new_pos[0] < self.row - 1 and self.isStone(new_pos, node):
+        if new_pos[0] < self.row - 1 and self.isStone(new_pos, self.stonesState(node)):
             # Valid stone
             new_stone_pos = (new_pos[0] + 1, new_pos[1])
 
-            if self.isEmpty(new_stone_pos, node):
-                new_stones_state = copy.deepcopy(self.stones_state_list[node.stones_list_id])
+            if self.isEmpty(new_stone_pos, self.stonesState(node)):
+                new_stones_state = copy.deepcopy(self.stonesState(node))
                 stoneID = new_stones_state.index(new_pos)
 
                 # Add new stone state to the list
                 new_stones_state[stoneID] = new_stone_pos
-                if self.isOldStoneState(new_stones_state):
-                    return None
                 
-                self.stones_state_list.append(new_stones_state)
+                if self.isRedundant(new_pos, node, new_stones_state):
+                    return None
+                if not self.isOldStoneState(new_stones_state):
+                    self.stones_state_list.append(new_stones_state)
+                    new_stones_state_id = len(self.stones_state_list) - 1
+                else:
+                    new_stones_state_id = self.stones_state_list.index(new_stones_state)
 
-                newState = Node(new_pos, len(self.closed_set) - 1, len(self.stones_state_list) - 1,
+                newState = Node(new_pos, len(self.closed_set) - 1, new_stones_state_id,
                                 node.steps + 1, node.weight + self.stone_weights[stoneID], 'D')
                 
                 return newState
@@ -256,22 +320,26 @@ class SearchSpace:
     def push_left(self, node: Node):
         new_pos = (node.agent_pos[0], node.agent_pos[1] - 1)
 
-        if new_pos[1] > 0 and self.isStone(new_pos, node):
+        if new_pos[1] > 0 and self.isStone(new_pos, self.stonesState(node)):
             # Valid stone
             new_stone_pos = (new_pos[0], new_pos[1] - 1)
 
-            if self.isEmpty(new_stone_pos, node):
-                new_stones_state = copy.deepcopy(self.stones_state_list[node.stones_list_id])
+            if self.isEmpty(new_stone_pos, self.stonesState(node)):
+                new_stones_state = copy.deepcopy(self.stonesState(node))
                 stoneID = new_stones_state.index(new_pos)
 
                 # Add new stone state to the list
                 new_stones_state[stoneID] = new_stone_pos
-                if self.isOldStoneState(new_stones_state):
-                    return None
                 
-                self.stones_state_list.append(new_stones_state)
+                if self.isRedundant(new_pos, node, new_stones_state):
+                    return None
+                if not self.isOldStoneState(new_stones_state):
+                    self.stones_state_list.append(new_stones_state)
+                    new_stones_state_id = len(self.stones_state_list) - 1
+                else:
+                    new_stones_state_id = self.stones_state_list.index(new_stones_state)
 
-                newState = Node(new_pos, len(self.closed_set) - 1, len(self.stones_state_list) - 1,
+                newState = Node(new_pos, len(self.closed_set) - 1, new_stones_state_id,
                                 node.steps + 1, node.weight + self.stone_weights[stoneID], 'L')
                 
                 return newState
@@ -281,22 +349,27 @@ class SearchSpace:
     def push_right(self, node: Node):
         new_pos = (node.agent_pos[0], node.agent_pos[1] + 1)
 
-        if new_pos[1] < self.column - 1 and self.isStone(new_pos, node):
+        if new_pos[1] < self.column - 1 and self.isStone(new_pos, self.stonesState(node)):
             # Valid stone
             new_stone_pos = (new_pos[0], new_pos[1] + 1)
 
-            if self.isEmpty(new_stone_pos, node):
-                new_stones_state = copy.deepcopy(self.stones_state_list[node.stones_list_id])
+            if self.isEmpty(new_stone_pos, self.stonesState(node)):
+                new_stones_state = copy.deepcopy(self.stonesState(node))
+
                 stoneID = new_stones_state.index(new_pos)
 
                 # Add new stone state to the list
                 new_stones_state[stoneID] = new_stone_pos
-                if self.isOldStoneState(new_stones_state):
-                    return None
-                
-                self.stones_state_list.append(new_stones_state)
 
-                newState = Node(new_pos, len(self.closed_set) - 1, len(self.stones_state_list) - 1,
+                if self.isRedundant(new_pos, node, new_stones_state):
+                    return None
+                if not self.isOldStoneState(new_stones_state):
+                    self.stones_state_list.append(new_stones_state)
+                    new_stones_state_id = len(self.stones_state_list) - 1
+                else:
+                    new_stones_state_id = self.stones_state_list.index(new_stones_state)
+
+                newState = Node(new_pos, len(self.closed_set) - 1, new_stones_state_id,
                                 node.steps + 1, node.weight + self.stone_weights[stoneID], 'R')
                 
                 return newState
@@ -341,7 +414,11 @@ class SearchSpace:
         self.open_set.remove(node)
         return validNodes
     
-    def path_construction(self, goal: Node) -> str:
+    # Debug test replacement, in case the functions went wrong
+    # def path_construction(self, goal: Node) -> str:
+    
+    def path_construction(self) -> str:
+        goal = self.closed_set[-1]
         path_instruction = goal.move_label
         prev_node_id = goal.prev_state
 
