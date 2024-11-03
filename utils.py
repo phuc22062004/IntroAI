@@ -173,7 +173,7 @@ class Maze:
         if(self.map[row][col] in ("$","*")):
             print("Da de")
         return True
-    #hàm get ra tập con của tất cả viên đá
+    #hàm get ra tập con của tất cả viên đá(các hướng viên đá có thể đến được trong tương lai)
     def get_subset_rock(self,O):
         rockPointes = self.find_rock()#tìm vị trí đá
         subsetRockes = []
@@ -204,7 +204,7 @@ class Maze:
                     closed = []
                     point = self.get_point_direction(rockPoint,subsetRock[3])
                     G = Node(point[0])
-                    if  self.DFS_step_player(Open,closed,G):
+                    if  self.DFS_step_player(Open,closed,G):#kiểm tra xem nhân vật có thể đi vào hướng ngược lại để đẩy đá không
                         tmp = Node(subsetRock[0],subsetRock[1],subsetRock[2],subsetRock[3])
                         subset_tmp = subset_rock_statu.copy()
                         subset_tmp[i] = tmp

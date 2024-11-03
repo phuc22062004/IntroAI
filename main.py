@@ -114,9 +114,9 @@ class GameGUI:
         result_list = [' '.join(map(str,self.khoi_luong_da))]+[''.join(row) for row in self.map]
         new_game = maze.SearchSpace(result_list)
         tmp, self.bfs = UCS_BFS.BFS(new_game)
+        print(self.bfs)
         result += f"BFS\t\n{tmp}\t\n"
 
-        result_list = [' '.join(map(str,self.khoi_luong_da))]+[''.join(row) for row in self.map]
         new_game = maze.SearchSpace(result_list)
         tmp, self.ucs = UCS_BFS.UCS(new_game)
         result += f"UCS\t\n{tmp}\t\n"
