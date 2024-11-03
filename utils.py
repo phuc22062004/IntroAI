@@ -1,8 +1,7 @@
 import copy
 
 
-def write_output(output_file,name,steps,weight,node,time,memory,path):
-    data = f"{name}\nSteps: {steps}, Weight: {weight}, Node: {node}, Time (ms): {time}, Memory (MB): {memory}\n{path}"
+def write_output(output_file,data):
     with open(output_file,"w",encoding="utf-8") as file:
         file.write(data)
     

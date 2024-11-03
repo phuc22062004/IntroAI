@@ -12,7 +12,6 @@ def BFS(game: SearchSpace) -> str:
     while open_set_capacity > 0:
         new_nodes = game.nodeExpansion(game.open_set[0])
         nodes_created += len(new_nodes)
-
         game.open_set += new_nodes
         open_set_capacity = len(game.open_set)
 
@@ -26,9 +25,10 @@ def BFS(game: SearchSpace) -> str:
     peak_in_MB = memory_peak / (1024 ** 2)
     if goal is None:
         return f'''Node: {nodes_created}, Time (ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}
-No solution!'''
-    return f'''Steps: {goal.steps}, Weight: {goal.weight}, Node: {nodes_created}, Time (ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}
-{game.path_construction()}'''
+No solution!''',None
+    steps = goal.steps
+    return f'''Steps: {steps}, Weight: {goal.weight}, Node: {nodes_created}, Time (ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}
+{game.path_construction()}''',steps
 
 def UCS(game: SearchSpace) -> str:
     start_time = time.time()
@@ -54,6 +54,7 @@ def UCS(game: SearchSpace) -> str:
     peak_in_MB = memory_peak / (1024 ** 2)
     if goal is None:
         return f'''Node: {nodes_created}, Time (ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}
-No solution!'''
-    return f'''Steps: {goal.steps}, Weight: {goal.weight}, Node: {nodes_created}, Time (ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}
-{game.path_construction()}'''
+No solution!''',None
+    steps = goal.steps
+    return f'''Steps: {steps}, Weight: {goal.weight}, Node: {nodes_created}, Time (ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}
+{game.path_construction()}''',steps

@@ -69,7 +69,6 @@ class GameGUI:
         self.list_map  = name_map
         self.load_map(name_map=name_map[0])
         self.player_position = self.find_player_position()
-        self.create_grid()
         self.root.focus_set()
         self.root.bind("<KeyPress>", self.move_player)
         #tạo Frame chứ danh sách map
@@ -92,6 +91,7 @@ class GameGUI:
         Label(self.display_result,text="Result: ",font=("Time News Roman", 13, "bold")).grid(row=0,column=0)
         self.label_result = Label(self.display_result,text="weigth = 0\nstep = 0",font=("Time News Roman", 13),width=60)
         self.label_result.grid(row=1,column=0)
+        self.create_grid()
 #---------------------------tạo hàm-----------------------------
 #---------------------------------------------------------------
     def reset_this(self):
@@ -99,14 +99,33 @@ class GameGUI:
         self.reset_game(selected_item)
 
     def out_road(self):
+        result = ''
         map_ = utils.Maze(self.map,self.ID_rock,self.count_rock,self.cac_huong_rock,self.destination,self.start,self.khoi_luong_da)
-        result, self.dfs= A_star_DFS.DFS(map_)
-
+        tmp, self.dfs= A_star_DFS.DFS(map_)
+        result += f"DFS\t\n{tmp}\t\n"
 
         stone = {self.ID_rock[i]: self.khoi_luong_da[i] for i in range(self.count_rock)}
         start = self.start
         goal_positions = self.destination
-        result ,self.a_star = A_star_DFS.A_star(self.map, start, goal_positions, stone)
+        tmp ,self.a_star = A_star_DFS.A_star(self.map, start, goal_positions, stone)
+        result += f"A*\t\n{tmp}\t\n"
+
+        #BFS
+        result_list = [' '.join(map(str,self.khoi_luong_da))]+[''.join(row) for row in self.map]
+        new_game = maze.SearchSpace(result_list)
+        tmp, self.bfs = UCS_BFS.BFS(new_game)
+        result += f"BFS\t\n{tmp}\t\n"
+
+        result_list = [' '.join(map(str,self.khoi_luong_da))]+[''.join(row) for row in self.map]
+        new_game = maze.SearchSpace(result_list)
+        tmp, self.ucs = UCS_BFS.UCS(new_game)
+        result += f"UCS\t\n{tmp}\t\n"
+        index = self.listbox.current()
+        name_file_out = f"output-{index+1:02}.txt"
+        write_output(name_file_out,result)
+
+
+
 
     #hàm xử lý sự kiện khi chọn một phần tử trong Listbox
     def on_select(self,event):
@@ -133,16 +152,10 @@ class GameGUI:
 
     #thực hiện BFS
     def BFS(self):
-        result_list = [' '.join(map(str,self.khoi_luong_da))]+[''.join(row) for row in self.map]
-        new_game = maze.SearchSpace(result_list)
-        result, road = UCS_BFS.BFS(new_game)
-        print(result, road)
-        # self.read_road(road,0)
+        self.read_road(self.bfs,0)
     
     def UCS(self):
-        result_list = [' '.join(map(str,self.khoi_luong_da))]+[''.join(row) for row in self.map]
-        new_game = maze.SearchSpace(result_list)
-        UCS_BFS.UCS(new_game)
+        self.read_road(self.ucs)
 
 
     def A_star(self):
