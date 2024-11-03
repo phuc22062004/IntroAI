@@ -44,9 +44,9 @@ def A_star(maze, start, goal_positions, stones):
             tracemalloc.stop()
             peak_in_MB = memory_peak / (1024 ** 2)
             road = ''.join(path)
-            return   f'''Steps: {len(path)}, Weight: ''' #road ,total_cost, numNodes, execution_time, peak_in_MB
-# f'''Steps: {len(Lo_Trinh)}, Weight: {weight}, Node: {numNode}, Time(ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}
-#     {Lo_Trinh}''', Lo_Trinh
+            return   f'''Steps: {len(path)}, Weight: {total_cost}, Node: {numNodes}, Time(ms): {execution_time:.2f}, Memory(MB): {peak_in_MB:.2f}
+                    {road}''',path
+
         state = (current_pos, current_stones)
         if state in visited:
             continue
@@ -70,7 +70,8 @@ def A_star(maze, start, goal_positions, stones):
     memory_peak = tracemalloc.get_traced_memory()[1]
     tracemalloc.stop()
     peak_in_MB = memory_peak / (1024 ** 2)
-    return None, total_cost, numNodes, execution_time, peak_in_MB
+    return f'''Steps: {0}, Weight: {total_cost}, Node: {numNodes}, Time(ms): {execution_time:.2f}, Memory(MB): {peak_in_MB:.2f}
+                    {None}''',None
 
 
 def DFS(map:utils.Maze):

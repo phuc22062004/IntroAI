@@ -106,10 +106,7 @@ class GameGUI:
         stone = {self.ID_rock[i]: self.khoi_luong_da[i] for i in range(self.count_rock)}
         start = self.start
         goal_positions = self.destination
-        self.a_star, total_cost,numNodes, execution_time,peak_in_MB = A_star_DFS.A_star(self.map, start, goal_positions, stone)
-
-
-
+        result ,self.a_star = A_star_DFS.A_star(self.map, start, goal_positions, stone)
 
     #hàm xử lý sự kiện khi chọn một phần tử trong Listbox
     def on_select(self,event):
