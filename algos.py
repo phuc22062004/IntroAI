@@ -27,6 +27,7 @@ def DFS(game: SearchSpace):
     peak_in_MB = memory_peak / (1024 ** 2)
 
     path = game.path_construction()
+    game.reset()
     if goal is None:
         return (f'''Node: {nodes_created}, Time (ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}
 No solution!''', '')
@@ -58,6 +59,7 @@ def BFS(game: SearchSpace):
     peak_in_MB = memory_peak / (1024 ** 2)
 
     path = game.path_construction()
+    game.reset()
     if goal is None:
         return (f'''Node: {nodes_created}, Time (ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}
 No solution!''', '')
@@ -89,6 +91,7 @@ def UCS(game: SearchSpace):
     peak_in_MB = memory_peak / (1024 ** 2)
 
     path = game.path_construction()
+    game.reset()
     if goal is None:
         return (f'''Node: {nodes_created}, Time (ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}
 No solution!''', '')
@@ -142,6 +145,7 @@ def AStar(game: SearchSpace):
     peak_in_MB = memory_peak / (1024 ** 2)
 
     path = game.path_construction()
+    game.reset()
     if goal is None:
         return (f'''Node: {nodes_created}, Time (ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}
 No solution!''', '')
