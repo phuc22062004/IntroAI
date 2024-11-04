@@ -3,11 +3,9 @@ from tkinter import *
 from types import SimpleNamespace
 import os
 from tkinter import messagebox
-import A_star_DFS
 from PIL import Image,ImageTk
-import utils
 import maze
-import UCS_BFS
+import algos
 from utils import write_output
     
 #class GUI dùng cho giao diện
@@ -27,11 +25,10 @@ class GameGUI:
         self.weight = 0
         self.ID_rock = {}
         self.count_rock = 0
-        self.cac_huong_rock = {}#lu cac hướng viên đá có thể đi và bật 1 nếu viên đá đã đi hướng đó rồi
-        self.root = root  # Assign the root to an instance attribute
-        self.is_day_da = False
+        self.direction_rock = {}
+        self.root = root  
         self.label_num = []
-        #tạo bảng điều khiển
+
         self.left_frame = Frame(root,width=500,height=700, bg="grey")
         self.left_frame.grid(row=0,column=0,padx=10,pady=5)
         self.tool_bar = Frame(self.left_frame,width=00,height=700,bg="grey")
@@ -42,8 +39,8 @@ class GameGUI:
         self.play_image = PhotoImage(file="images/play.png").subsample(6,6)
 
         # Biến lưu trạng thái
-        self.is_paused = False  # Bắt đầu ở trạng thái pause
-        #tạo button
+        self.is_paused = False  
+
         self.button_DFS = Button(self.tool_bar,width=5,height=2, text="DFS",command=self.Run_DFS)
         self.button_BFS = Button(self.tool_bar,width=5,height=2, text="BFS",command=self.BFS)
         self.button_UCS = Button(self.tool_bar, width=5,height=2,text="UCS",command=self.UCS)
@@ -92,34 +89,29 @@ class GameGUI:
         self.label_result = Label(self.display_result,text="weigth = 0\nstep = 0",font=("Time News Roman", 13),width=60)
         self.label_result.grid(row=1,column=0)
         self.create_grid()
-#---------------------------tạo hàm-----------------------------
-#---------------------------------------------------------------
+
     def reset_this(self):
         selected_item = self.listbox.get()
         self.reset_game(selected_item)
 
     def out_road(self):
         result = ''
-        map_ = utils.Maze(self.map,self.ID_rock,self.count_rock,self.cac_huong_rock,self.destination,self.start,self.khoi_luong_da)
-        tmp, self.dfs= A_star_DFS.DFS(map_)
-        result += f"DFS\t\n{tmp}\t\n"
-
-        stone = {self.ID_rock[i]: self.khoi_luong_da[i] for i in range(self.count_rock)}
-        start = self.start
-        goal_positions = self.destination
-        tmp ,self.a_star = A_star_DFS.A_star(self.map, start, goal_positions, stone)
-        result += f"A*\t\n{tmp}\t\n"
-
-        #BFS
         result_list = [' '.join(map(str,self.khoi_luong_da))]+[''.join(row) for row in self.map]
         new_game = maze.SearchSpace(result_list)
-        tmp, self.bfs = UCS_BFS.BFS(new_game)
-        print(self.bfs)
-        result += f"BFS\t\n{tmp}\t\n"
 
-        new_game = maze.SearchSpace(result_list)
-        tmp, self.ucs = UCS_BFS.UCS(new_game)
+        #DFS
+        tmp,self.dfs = algos.DFS(new_game)
+        result+= f"DFS\t\n{tmp}\t\n"
+        #BFS
+        tmp, self.bfs = algos.BFS(new_game)
+        result += f"BFS\t\n{tmp}\t\n"
+        #UCS
+        tmp, self.ucs = algos.UCS(new_game)
         result += f"UCS\t\n{tmp}\t\n"
+        #A*
+        tmp,self.a_star = algos.AStar(new_game)
+        result += f"A*\t\n{tmp}\t\n"
+        #write to output 
         index = self.listbox.current()
         name_file_out = f"output-{index+1:02}.txt"
         write_output(name_file_out,result)
@@ -339,22 +331,16 @@ class GameGUI:
                     
                 image = self.images.get(cell)
                 if image:
-                    # Sử dụng Canvas để hiển thị hình ảnh và số
                     canvas = Canvas(self.map_GUI, width=cell_size, height=cell_size, highlightthickness=0)
                     canvas.grid(row=i, column=j)
                     canvas.create_image(0, 0, anchor="nw", image=image)
                     
                     if cell == "$" or cell == "*":
-                        # Thêm số ngẫu nhiên lên ô chứa đá
                         random_number = self.khoi_luong_da[h]
                         h += 1
-                    # Vẽ hình tròn trắng ở giữa Canvas
                         canvas.create_oval(cell_size // 4, cell_size // 4, 3 * cell_size // 4, 3 * cell_size // 4, fill="white", outline="black")
-                        # Thêm số vào giữa hình tròn
                         canvas.create_text(cell_size // 2, cell_size // 2, text=str(random_number), font=("Arial", 12, 'bold'), fill="black")
-                        # Lưu lại Canvas vào danh sách để có thể cập nhật sau
                         self.label_num.append(canvas)
-                    # Lưu Canvas vào hàng của grid
                     label_row.append(canvas)
             self.labels.append(label_row)
         self.out_road()
