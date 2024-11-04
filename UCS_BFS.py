@@ -26,7 +26,7 @@ def BFS(game: SearchSpace) -> str:
     if goal is None:
         return (f'''Node: {nodes_created}, Time (ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}
 No solution!''', '')
-    return (f'''Steps: {goal.steps}, Weight: {goal.weight}, Node: {nodes_created}, Time (ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}''', game.game.path_construction())
+    return (f'''Steps: {goal.steps}, Weight: {goal.weight}, Node: {nodes_created}, Time (ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}''', game.path_construction())
 
 def UCS(game: SearchSpace) -> str:
     start_time = time.time()
@@ -52,4 +52,4 @@ def UCS(game: SearchSpace) -> str:
     if goal is None:
         return (f'''Node: {nodes_created}, Time (ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}
 No solution!''', '')
-    return (f'''Steps: {goal.steps}, Weight: {goal.weight}, Node: {nodes_created}, Time (ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}''', game.game.path_construction())
+    return (f'''Steps: {goal.steps}, Weight: {goal.weight}, Node: {nodes_created}, Time (ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}''', game.path_construction())
