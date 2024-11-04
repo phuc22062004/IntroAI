@@ -229,19 +229,20 @@ class SearchSpace:
         # Check pushing moves
         elif self.stoneInLoop(prev_node, stones_state) or self.isDeadlocked(stones_state):
             return True
-        
-        else:
-            # Check if agent is moving further from all stones
-            agent_stone_dist_curr = agent_stone_distance(self.closed_set[-1].agent_pos, self.stonesState(prev_node))
-            
-            surrounding_isEmpty = True
-            for neighbor in self.get_neighbors(new_agent_pos):
-                for sub_neighbor_status in self.neighborStatus(neighbor, stones_state):
-                    surrounding_isEmpty = surrounding_isEmpty and not sub_neighbor_status
 
-            agent_stone_dist_new = agent_stone_distance(new_agent_pos, stones_state)
-            if surrounding_isEmpty and np.all(agent_stone_dist_curr + 1 < agent_stone_dist_new):
-                return True
+        # This is quite awkward, I'm just gonna let the agent move freely by itself
+        # else:
+        #     # Check if agent is moving further from all stones
+        #     agent_stone_dist_curr = agent_stone_distance(self.closed_set[-1].agent_pos, self.stonesState(prev_node))
+            
+        #     surrounding_isEmpty = True
+        #     for neighbor in self.get_neighbors(new_agent_pos):
+        #         for sub_neighbor_status in self.neighborStatus(neighbor, stones_state):
+        #             surrounding_isEmpty = surrounding_isEmpty and not sub_neighbor_status
+
+        #     agent_stone_dist_new = agent_stone_distance(new_agent_pos, stones_state)
+        #     if surrounding_isEmpty and np.all(agent_stone_dist_curr + 1 < agent_stone_dist_new):
+        #         return True
         
         return False
 
