@@ -55,9 +55,3 @@ def UCS(game: SearchSpace) -> str:
 No solution!'''
     return f'''Steps: {goal.steps}, Weight: {goal.weight}, Node: {nodes_created}, Time (ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}
 {game.path_construction()}'''
-
-input_test = 'input.txt'
-input_map = open(input_test, 'r', encoding = 'utf-8').read().split('\n')
-new_game = SearchSpace(input_map)
-output = BFS(new_game)
-print(output)
