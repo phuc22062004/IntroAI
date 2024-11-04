@@ -23,10 +23,12 @@ def BFS(game: SearchSpace) -> str:
     memory_peak = tracemalloc.get_traced_memory()[1]
     tracemalloc.stop()
     peak_in_MB = memory_peak / (1024 ** 2)
+    road = game.path_construction()
     if goal is None:
         return (f'''Node: {nodes_created}, Time (ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}
 No solution!''', '')
-    return (f'''Steps: {goal.steps}, Weight: {goal.weight}, Node: {nodes_created}, Time (ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}''', game.path_construction())
+    return (f'''Steps: {goal.steps}, Weight: {goal.weight}, Node: {nodes_created}, Time (ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}
+{road}''', road)
 
 def UCS(game: SearchSpace) -> str:
     start_time = time.time()
@@ -48,8 +50,9 @@ def UCS(game: SearchSpace) -> str:
     duration = (time.time() - start_time) * 1000
     memory_peak = tracemalloc.get_traced_memory()[1]
     tracemalloc.stop()
-    peak_in_MB = memory_peak / (1024 ** 2)
+    road = game.path_construction()
     if goal is None:
         return (f'''Node: {nodes_created}, Time (ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}
 No solution!''', '')
-    return (f'''Steps: {goal.steps}, Weight: {goal.weight}, Node: {nodes_created}, Time (ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}''', game.path_construction())
+    return (f'''Steps: {goal.steps}, Weight: {goal.weight}, Node: {nodes_created}, Time (ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}
+{road}''', road)
