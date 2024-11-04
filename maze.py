@@ -467,3 +467,8 @@ class SearchSpace:
             prev_node_id = prev_node.prev_state
         
         return path_instruction
+
+    # Game reset
+    def reset(self):
+        self.open_set = [self.open_set[0]]
+        self.closed_set = []
