@@ -11,6 +11,9 @@ class Node:
         self.weight = weight
         self.move_label = move_label
 
+    def cost(self):
+        return self.steps + self.weight
+
     def __repr__(self) -> str:
         return (f'({self.agent_pos}, {self.prev_state}, {self.stones_list_id}, '
                 + f'{self.steps}, {self.weight}, \'{self.move_label}\')')
@@ -20,6 +23,12 @@ class Node:
     
     def __lt__(self, other):
         return self.prev_state < other.prev_state
+    
+def agent_stone_distance(agent_pos: tuple[int], stones_state: list[tuple[int]]):
+    np_stones_state = np.array(stones_state)
+    agent_stone_diff = np_stones_state - np.array(agent_pos)
+    Manhattan_dist = np.sum(np.abs(agent_stone_diff), axis = -1)
+    return Manhattan_dist
 
 class SearchSpace:
     def __init__(self, input: list[str]) -> None:
@@ -211,13 +220,7 @@ class SearchSpace:
         
         return neighbors_isObstacle
     
-    def isRedundant(self, new_agent_pos: tuple[int], prev_node: Node, stones_state: list[tuple[int]]):
-        def agent_stone_distance(agent_pos: tuple[int], stones_state: list[tuple[int]]):
-            stone_pos = np.array(stones_state)
-            agent_stone_diff = stone_pos - np.array(agent_pos)
-            Manhattan_dist = np.sum(np.abs(agent_stone_diff), axis = -1)
-            return Manhattan_dist
-        
+    def isRedundant(self, new_agent_pos: tuple[int], prev_node: Node, stones_state: list[tuple[int]]):       
         # Check non-pushing moves
         if (self.isLooped(new_agent_pos, prev_node.stones_list_id, prev_node.prev_state)
             or self.isAlternativeMove(new_agent_pos, stones_state, prev_node.steps + 1, prev_node.weight)):
@@ -409,9 +412,11 @@ class SearchSpace:
         
         return None
     
-    def nodeExpansion(self, node: Node) -> int:
+    def nodeExpansion(self, node: Node) -> list[Node]:
         # Add current node to closed set
         self.closed_set.append(node)
+        if self.goalReached(self.closed_set[-1]):
+            return []
 
         move_up_node = self.move_up(node)
         move_right_node = self.move_right(node)
@@ -421,39 +426,31 @@ class SearchSpace:
         push_right_node = self.push_right(node)
         push_down_node = self.push_down(node)
         push_left_node = self.push_left(node)
-        valid_count = 0
+        validNodes = []
 
         if move_up_node is not None:
-            self.open_set.append(move_up_node)
-            valid_count += 1
+            validNodes.append(move_up_node)            
         elif push_up_node is not None:
-            self.open_set.append(push_up_node)
-            valid_count += 1
+            validNodes.append(push_up_node)           
 
         if move_right_node is not None:
-            self.open_set.append(move_right_node)
-            valid_count += 1
+            validNodes.append(move_right_node)            
         elif push_right_node is not None:
-            self.open_set.append(push_right_node)
-            valid_count += 1
+            validNodes.append(push_right_node)            
 
         if move_down_node is not None:
-            self.open_set.append(move_down_node)
-            valid_count += 1
+            validNodes.append(move_down_node)            
         elif push_down_node is not None:
-            self.open_set.append(push_down_node)
-            valid_count += 1
+            validNodes.append(push_down_node)            
 
         if move_left_node is not None:
-            self.open_set.append(move_left_node)
-            valid_count += 1
+            validNodes.append(move_left_node)            
         elif push_left_node is not None:
-            self.open_set.append(push_left_node)
-            valid_count += 1
+            validNodes.append(push_left_node)          
         
         # Remove current node from open set
         self.open_set.remove(node)
-        return valid_count
+        return validNodes
     
     # Debug test replacement, in case the functions went wrong
     # def path_construction(self, goal: Node) -> str:
