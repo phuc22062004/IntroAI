@@ -5,15 +5,15 @@ import tracemalloc
 def BFS(game: SearchSpace) -> str:
     start_time = time.time()
     tracemalloc.start()
-    open_set_capacity = len(game.open_set)
+    open_set_capacity = 1
     goal = None
-    nodes_created = len(game.open_set)
+    nodes_created = 1
 
     while open_set_capacity > 0:
-        new_nodes = game.nodeExpansion(game.open_set[0])
-        nodes_created += len(new_nodes)
-        game.open_set += new_nodes
-        open_set_capacity = len(game.open_set)
+        new_nodes_count = game.nodeExpansion(game.open_set[0])
+        nodes_created += new_nodes_count
+
+        open_set_capacity += new_nodes_count - 1
 
         if game.goalReached(game.closed_set[-1]):
             goal = game.closed_set[-1]
@@ -25,24 +25,22 @@ def BFS(game: SearchSpace) -> str:
     peak_in_MB = memory_peak / (1024 ** 2)
     if goal is None:
         return f'''Node: {nodes_created}, Time (ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}
-No solution!''',None
-    steps = game.path_construction()
+No solution!'''
     return f'''Steps: {goal.steps}, Weight: {goal.weight}, Node: {nodes_created}, Time (ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}
-{steps}''',steps
+{game.path_construction()}'''
 
 def UCS(game: SearchSpace) -> str:
     start_time = time.time()
     tracemalloc.start()
-    open_set_capacity = len(game.open_set)
+    open_set_capacity = 1
     goal = None
-    nodes_created = len(game.open_set)
+    nodes_created = 1
 
     while open_set_capacity > 0:
-        new_nodes = game.nodeExpansion(game.open_set[0])
-        nodes_created += len(new_nodes)
+        new_nodes_count = game.nodeExpansion(min(game.open_set, key = lambda x: x.steps + x.weight))
+        nodes_created += new_nodes_count
 
-        game.open_set = sorted(game.open_set + new_nodes, key = lambda node: node.steps + node.weight)
-        open_set_capacity = len(game.open_set)
+        open_set_capacity += new_nodes_count - 1
 
         if game.goalReached(game.closed_set[-1]):
             goal = game.closed_set[-1]
@@ -54,7 +52,12 @@ def UCS(game: SearchSpace) -> str:
     peak_in_MB = memory_peak / (1024 ** 2)
     if goal is None:
         return f'''Node: {nodes_created}, Time (ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}
-No solution!''',None
-    steps = game.path_construction()
+No solution!'''
     return f'''Steps: {goal.steps}, Weight: {goal.weight}, Node: {nodes_created}, Time (ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}
-{steps}''',steps
+{game.path_construction()}'''
+
+input_test = 'input.txt'
+input_map = open(input_test, 'r', encoding = 'utf-8').read().split('\n')
+new_game = SearchSpace(input_map)
+output = BFS(new_game)
+print(output)

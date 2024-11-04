@@ -18,6 +18,9 @@ class Node:
     def __str__(self) -> str:
         return self.__repr__()
     
+    def __lt__(self, other):
+        return self.prev_state < other.prev_state
+
 class SearchSpace:
     def __init__(self, input: list[str]) -> None:
         # Extract stones' weight
@@ -100,7 +103,11 @@ class SearchSpace:
         return self.stones_state_list[node.stones_list_id]
     
     def isWall(self, position: tuple[int]):
-        return position is None or self.wall_map[position[0]][position[1]]
+        if (position is None or position[0] < 0 or position[1] < 0
+            or position[0] >= self.row or position[1] >= self.column):
+            return True
+        
+        return self.wall_map[position[0]][position[1]]
 
     # Check if there is any stone at given position on current stone state
     def isStone(self, position: tuple[int], stones_state: list[tuple[int]]) -> bool:
@@ -156,11 +163,37 @@ class SearchSpace:
     
     # Check if there is any alternative move exists
     def isAlternativeMove(self, curr_agent_pos: tuple[int], stones_state: list[tuple[int]], steps: int, weight: int):
+        for state in self.closed_set:
+            if (curr_agent_pos == state.agent_pos and stones_state == self.stonesState(state)):
+                return True
+        
         for state in self.open_set:
             if (curr_agent_pos == state.agent_pos and stones_state == self.stonesState(state)
                 and steps == state.steps and weight == state.weight):
                 return True
         
+        return False
+    
+    # Check for deadlock pattern
+    def isDeadlocked(self, stones_state: tuple[int]) -> bool:
+        for stone_pos in stones_state:
+            if stone_pos in self.switches:
+                return False
+        
+            stone_neighbors = self.get_neighbors(stone_pos)
+            for i in range(3):
+                if self.isWall(stone_neighbors[i]) and self.isWall(stone_neighbors[i - 1]):
+                    return True
+                
+                elif self.isWall(stone_neighbors[i]):
+                    if self.isStone(stone_neighbors[i - 1], stones_state) and not self.isEmpty(
+                        (stone_neighbors[i - 1][0] - 1, stone_neighbors[i - 1][1]), stones_state):
+                        return True
+                    
+                    elif self.isStone(stone_neighbors[i + 1], stones_state) and not self.isEmpty(
+                        (stone_neighbors[i + 1][0] - 1, stone_neighbors[i + 1][1]), stones_state):
+                        return True
+                    
         return False
     
     # Check if the surrounding has any obstacle
@@ -191,7 +224,7 @@ class SearchSpace:
             return True
         
         # Check pushing moves
-        elif self.stoneInLoop(prev_node, stones_state):
+        elif self.stoneInLoop(prev_node, stones_state) or self.isDeadlocked(stones_state):
             return True
         
         else:
@@ -376,7 +409,7 @@ class SearchSpace:
         
         return None
     
-    def nodeExpansion(self, node: Node) -> list[Node]:
+    def nodeExpansion(self, node: Node) -> int:
         # Add current node to closed set
         self.closed_set.append(node)
 
@@ -388,31 +421,39 @@ class SearchSpace:
         push_right_node = self.push_right(node)
         push_down_node = self.push_down(node)
         push_left_node = self.push_left(node)
-        validNodes = []
+        valid_count = 0
 
         if move_up_node is not None:
-            validNodes.append(move_up_node)
+            self.open_set.append(move_up_node)
+            valid_count += 1
         elif push_up_node is not None:
-            validNodes.append(push_up_node)
+            self.open_set.append(push_up_node)
+            valid_count += 1
 
         if move_right_node is not None:
-            validNodes.append(move_right_node)
+            self.open_set.append(move_right_node)
+            valid_count += 1
         elif push_right_node is not None:
-            validNodes.append(push_right_node)
+            self.open_set.append(push_right_node)
+            valid_count += 1
 
         if move_down_node is not None:
-            validNodes.append(move_down_node)
+            self.open_set.append(move_down_node)
+            valid_count += 1
         elif push_down_node is not None:
-            validNodes.append(push_down_node)
+            self.open_set.append(push_down_node)
+            valid_count += 1
 
         if move_left_node is not None:
-            validNodes.append(move_left_node)
+            self.open_set.append(move_left_node)
+            valid_count += 1
         elif push_left_node is not None:
-            validNodes.append(push_left_node)
+            self.open_set.append(push_left_node)
+            valid_count += 1
         
         # Remove current node from open set
         self.open_set.remove(node)
-        return validNodes
+        return valid_count
     
     # Debug test replacement, in case the functions went wrong
     # def path_construction(self, goal: Node) -> str:
