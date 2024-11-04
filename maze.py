@@ -472,3 +472,4 @@ class SearchSpace:
     def reset(self):
         self.open_set = [self.closed_set[0]]
         self.closed_set = []
+        self.stones_state_list = [self.stones_state_list[0]]
