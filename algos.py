@@ -147,11 +147,3 @@ def AStar(game: SearchSpace):
 No solution!''', '')
     return (f'''Steps: {goal.steps}, Weight: {goal.weight}, Node: {nodes_created}, Time (ms): {duration:.2f}, Memory (MB): {peak_in_MB:.2f}
 {path}''', path)
-
-input_test = 'input.txt'
-input_map = open(input_test, 'r', encoding = 'utf-8').read().split('\n')
-new_game = SearchSpace(input_map)
-print(DFS(SearchSpace(input_map)))
-print(BFS(SearchSpace(input_map)))
-print(UCS(SearchSpace(input_map)))
-print(AStar(SearchSpace(input_map)))
