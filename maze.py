@@ -470,5 +470,5 @@ class SearchSpace:
 
     # Game reset
     def reset(self):
-        self.open_set = [self.open_set[0]]
+        self.open_set = [self.closed_set[0]]
         self.closed_set = []
