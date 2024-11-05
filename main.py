@@ -140,7 +140,7 @@ class GameGUI:
     def UCS(self):
         result = ''
         new_game = self.initgame()
-        temp,self.bfs = algos.UCS(new_game)
+        temp,self.ucs = algos.UCS(new_game)
         result += f"UCS\t\n{temp}\t\n"
         self.write(result)
         self.read_road(self.ucs,0)
@@ -149,7 +149,7 @@ class GameGUI:
     def A_star(self):
         result = ''
         new_game = self.initgame()
-        temp,self.bfs = algos.AStar(new_game)
+        temp,self.a_star = algos.AStar(new_game)
         result += f"A*\t\n{temp}\t\n"
         self.write(result)
         self.read_road(self.a_star, 0)
@@ -157,7 +157,7 @@ class GameGUI:
     def DFS(self):
         result = ''
         new_game = self.initgame()
-        temp,self.bfs = algos.DFS(new_game)
+        temp,self.dfs = algos.DFS(new_game)
         result += f"DFS\t\n{temp}\t\n"
         self.write(result)
         self.read_road(self.dfs,0)
