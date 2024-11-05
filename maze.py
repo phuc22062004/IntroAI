@@ -96,7 +96,7 @@ class SearchSpace:
         return [up, right, down, left]
     
     def stonesState(self, node: Node) -> list[tuple[int]]:
-        return self.stones_state_list[node.stones_stone_id]
+        return self.stones_state_list[node.stones_state_id]
     
     def isWall(self, position: tuple[int]):
         if (position is None or position[0] < 0 or position[1] < 0
