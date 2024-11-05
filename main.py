@@ -94,6 +94,33 @@ class GameGUI:
         selected_item = self.listbox.get()
         self.reset_game(selected_item)
 
+    def out_road(self,result_list):
+        result = ''
+        new_game = maze.SearchSpace(result_list)
+
+        #DFS
+        tmp,self.dfs = algos.DFS(new_game)
+        result+= f"DFS\t\n{tmp}\t\n"
+        #BFS
+        tmp, self.bfs = algos.BFS(new_game)
+        result += f"BFS\t\n{tmp}\t\n"
+        #UCS
+        tmp, self.ucs = algos.UCS(new_game)
+        result += f"UCS\t\n{tmp}\t\n"
+        #A*
+        tmp,self.a_star = algos.AStar(new_game)
+        result += f"A*\t\n{tmp}\t\n"
+        #write to output 
+        if self.init___:
+            index = 1   
+        else:
+            index = self.listbox.current()
+        name_file_out = f"output-{index+1:02}.txt"
+        write_output(name_file_out,result)
+
+
+
+
     #hàm xử lý sự kiện khi chọn một phần tử trong Listbox
     def on_select(self,event):
         selected_item = self.listbox.get()
