@@ -120,8 +120,8 @@ class SearchSpace:
         return False
     
     def goalReached(self, node: Node):
-        stones_state = np.array(stonesState(node))
-        stones_flag = np.all(stones_state.reshape(stones_state.shape[0], 1, -1) == np.array(switches), axis = -1)
+        stones_state = np.array(self.stonesState(node))
+        stones_flag = np.all(stones_state.reshape(stones_state.shape[0], 1, -1) == np.array(self.switches), axis = -1)
         return np.all(np.any(stones_flag, axis = -1))
     
     # Check if the agent is moving into loops
