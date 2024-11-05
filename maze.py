@@ -2,11 +2,11 @@ import copy
 import numpy as np
 
 class Node:
-    def __init__(self, agent_pos: tuple[int], prev_state: int = -1, stone_id: int = 0,
+    def __init__(self, agent_pos: tuple[int], prev_state: int = -1, state_id: int = 0,
                  steps: int = 0, weight: int = 0, move_label: str = '') -> None:
         self.agent_pos = agent_pos
         self.prev_state = prev_state    # ID in state list
-        self.stones_stone_id = stone_id
+        self.stones_state_id = state_id
         self.steps = steps
         self.weight = weight
         self.move_label = move_label
@@ -15,7 +15,7 @@ class Node:
         return self.steps + self.weight
 
     def __repr__(self) -> str:
-        return (f'({self.agent_pos}, {self.prev_state}, {self.stones_stone_id}, '
+        return (f'({self.agent_pos}, {self.prev_state}, {self.stones_state_id}, '
                 + f'{self.steps}, {self.weight}, \'{self.move_label}\')')
 
     def __str__(self) -> str:
@@ -130,7 +130,7 @@ class SearchSpace:
 
         while prev_of_prev_id > -1:
             prev_of_prev_state = self.closed_set[prev_of_prev_id]
-            state = (prev_of_prev_state.agent_pos,prev_of_prev_state.stones_stone_id)
+            state = (prev_of_prev_state.agent_pos,prev_of_prev_state.stones_state_id)
             if state in check_states:
                 return True
             check_states.add(state)
@@ -146,7 +146,7 @@ class SearchSpace:
         
         while prev_state > -1:
             prev_node = self.closed_set[prev_state]
-            stone_state_key = tuple(self.stones_state_list[prev_node.stones_stone_id])
+            stone_state_key = tuple(self.stones_state_list[prev_node.stones_state_id])
             if stone_state_key == tuple(stones_state):
                 return True
             check_stone_states.add(stone_state_key)
@@ -198,7 +198,7 @@ class SearchSpace:
     
     def isRedundant(self, new_agent_pos: tuple[int], prev_node: Node, stones_state: list[tuple[int]]):       
         # Check non-pushing moves
-        if (self.isLooped(new_agent_pos, prev_node.stones_stone_id, prev_node.prev_state)
+        if (self.isLooped(new_agent_pos, prev_node.stones_state_id, prev_node.prev_state)
             or self.isAlternativeMove(new_agent_pos, stones_state, prev_node.steps + 1, prev_node.weight)):
             return True
         
@@ -228,7 +228,7 @@ class SearchSpace:
             if self.isRedundant(new_pos, node, self.stonesState(node)):
                 return None
 
-            newState = Node(new_pos, len(self.closed_set) - 1, node.stones_stone_id,
+            newState = Node(new_pos, len(self.closed_set) - 1, node.stones_state_id,
                             node.steps + 1, node.weight, 'u')
             return newState
         
@@ -240,7 +240,7 @@ class SearchSpace:
             if self.isRedundant(new_pos, node, self.stonesState(node)):
                 return None
 
-            newState = Node(new_pos, len(self.closed_set) - 1, node.stones_stone_id,
+            newState = Node(new_pos, len(self.closed_set) - 1, node.stones_state_id,
                             node.steps + 1, node.weight, 'd')
             return newState
         
@@ -252,7 +252,7 @@ class SearchSpace:
             if self.isRedundant(new_pos, node, self.stonesState(node)):
                 return None
 
-            newState = Node(new_pos, len(self.closed_set) - 1, node.stones_stone_id,
+            newState = Node(new_pos, len(self.closed_set) - 1, node.stones_state_id,
                             node.steps + 1, node.weight, 'l')
             return newState
         
@@ -264,7 +264,7 @@ class SearchSpace:
             if self.isRedundant(new_pos, node, self.stonesState(node)):
                 return None
 
-            newState = Node(new_pos, len(self.closed_set) - 1, node.stones_stone_id,
+            newState = Node(new_pos, len(self.closed_set) - 1, node.stones_state_id,
                             node.steps + 1, node.weight, 'r')
             return newState
         
