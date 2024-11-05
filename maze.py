@@ -52,38 +52,27 @@ class SearchSpace:
             firstStoneState = []
 
             for i in range(self.row):
-                new_row = []
+                new_row = [input[i + 1][j] in r'#' for j in range(self.column)]
                 for j in range(self.column):
 
-                    if input[i + 1][j] == r'#':
-                        new_row.append(True)
-
-                    elif input[i + 1][j] == r'@':
-                        new_row.append(False)
+                    if input[i + 1][j] == r'@':
                         self.start = (i, j)
 
                     elif input[i + 1][j] == r'$':
-                        new_row.append(False)
                         firstStoneState.append((i, j))
                         currentStone += 1
 
                     elif input[i + 1][j] == r'.':
-                        new_row.append(False)
                         self.switches.append((i, j))
 
                     elif input[i + 1][j] == r'+':
-                        new_row.append(False)
                         self.start = (i, j)
                         self.switches.append((i, j))
 
                     elif input[i + 1][j] == r'*':
-                        new_row.append(False)
                         firstStoneState.append((i, j))
                         currentStone += 1
                         self.switches.append((i, j))
-
-                    else:
-                        new_row.append(False)
                     
                 isWall.append(new_row)
             
@@ -98,18 +87,13 @@ class SearchSpace:
         self.closed_set: list[Node] = []
 
     def get_neighbors(self, position: tuple[int]):
-        # List of possible directions as (delta_row, delta_col)
-        deltas = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-        neighbors = []
-
-        for dx, dy in deltas:
-            neighbor_row, neighbor_col = position[0] + dx, position[1] + dy
-
-            # Check if the neighbor is within the map boundaries
-            if 0 <= neighbor_row < self.row and 0 <= neighbor_col < self.column:
-                neighbors.append((neighbor_row, neighbor_col))
-
-        return neighbors
+        # Get all valid directions
+        up = (position[0] - 1, position[1]) if position[0] > 0 else None
+        down = (position[0] + 1, position[1]) if position[0] < self.row - 1 else None
+        left = (position[0], position[1] - 1) if position[1] > 0 else None
+        right = (position[0], position[1] + 1) if position[1] < self.column - 1 else None
+        
+        return [up, right, down, left]
     
     def stonesState(self, node: Node) -> list[tuple[int]]:
         return self.stones_state_list[node.stones_stone_id]
@@ -126,7 +110,7 @@ class SearchSpace:
         return (position in stones_state)
 
     def isEmpty(self, position: tuple[int], stones_state: list[tuple[int]]) -> bool:
-        return (not (self.isStone(position, stones_state) or self.isWall(position)))
+        return (not (self.isWall(position) or self.isStone(position, stones_state)))
 
     # Check if this stone state is already exists
     def isOldStoneState(self, stones_state: list[tuple[int]]) -> bool:
@@ -136,11 +120,9 @@ class SearchSpace:
         return False
     
     def goalReached(self, node: Node):
-        for stone in self.stonesState(node):
-            if stone not in self.switches:
-                return False
-            
-        return True
+        stones_state = np.array(stonesState(node))
+        stones_flag = np.all(stones_state.reshape(stones_state.shape[0], 1, -1) == np.array(switches), axis = -1)
+        return np.all(np.any(stones_flag, axis = -1))
     
     # Check if the agent is moving into loops
     def isLooped(self, curr_agent_pos: tuple[int], stones_state_id: int, prev_of_prev_id: int):
@@ -161,6 +143,7 @@ class SearchSpace:
             return False
         check_stone_states = set()
         prev_state = node.prev_state
+        
         while prev_state > -1:
             prev_node = self.closed_set[prev_state]
             stone_state_key = tuple(self.stones_state_list[prev_node.stones_stone_id])
@@ -173,14 +156,15 @@ class SearchSpace:
     
     # Check if there is any alternative move exists
     def isAlternativeMove(self, curr_agent_pos: tuple[int], stones_state: list[tuple[int]], steps: int, weight: int):
-        for state in self.closed_set:
-            if (curr_agent_pos == state.agent_pos and stones_state == self.stonesState(state)):
-                return True
-        
-        for state in self.open_set:
-            if (curr_agent_pos == state.agent_pos and stones_state == self.stonesState(state)
-                and steps == state.steps and weight == state.weight):
-                return True
+        alter_detected = np.array([(curr_agent_pos == state.agent_pos
+                                    and stones_state == self.stonesState(state)) for state in self.closed_set])
+        if np.any(alter_detected):
+            return True
+
+        alter_detected = np.array([(curr_agent_pos == state.agent_pos and stones_state == self.stonesState(state)
+                                    and steps == state.steps and weight == state.weight) for state in self.open_set])
+        if np.any(alter_detected):
+            return True
         
         return False
     
@@ -189,33 +173,16 @@ class SearchSpace:
         for stone_pos in stones_state:
             if stone_pos in self.switches:
                 return False
+
             stone_neighbors = self.get_neighbors(stone_pos)
-            neighbor_count = len(stone_neighbors)
-            
-            for i in range(neighbor_count):
-                # Check if current neighbor and the one before are walls
+            for i in range(4):
                 if self.isWall(stone_neighbors[i]) and self.isWall(stone_neighbors[i - 1]):
                     return True
-                
-                # Check if current neighbor is a wall
-                if self.isWall(stone_neighbors[i]):
-                    if i > 0 and self.isStone(stone_neighbors[i - 1], stones_state) and not self.isEmpty(
-                        (stone_neighbors[i - 1][0] - 1, stone_neighbors[i - 1][1]), stones_state):
-                        return True
-                    
-                    if i < neighbor_count - 1 and self.isStone(stone_neighbors[i + 1], stones_state) and not self.isEmpty(
-                        (stone_neighbors[i + 1][0] - 1, stone_neighbors[i + 1][1]), stones_state):
-                        return True
-                
-                # Check if the stone is stuck between two stones
-                if (self.isStone(stone_neighbors[i], stones_state) and 
-                    i > 0 and self.isStone(stone_neighbors[i - 1], stones_state) and
-                    self.isStone((stone_neighbors[i - 1][0] - 1, stone_neighbors[i - 1][1]), stones_state)):
-                    return True
-                
-                if (self.isStone(stone_neighbors[i], stones_state) and 
-                    i < neighbor_count - 1 and self.isStone(stone_neighbors[i + 1], stones_state) and
-                    self.isStone((stone_neighbors[i + 1][0] - 1, stone_neighbors[i + 1][1]), stones_state)):
+
+                corner_1 = (stone_neighbors[i - 1][0], stone_neighbors[i][1])
+                corner_2 = (stone_neighbors[i][0], stone_neighbors[i - 1][1])
+                if not (self.isEmpty(stone_neighbors[i], stones_state) or self.isEmpty(stone_neighbors[i - 1], stones_state)
+                        or self.isEmpty(corner_1, stones_state) or self.isEmpty(corner_2, stones_state)):
                     return True
 
         return False
@@ -224,15 +191,8 @@ class SearchSpace:
     # Check if the surrounding has any obstacle
     def neighborStatus(self, position: tuple[int], stones_state: list[tuple[int]]) -> list[bool]:
         neighbor_cells = self.get_neighbors(position)
-
-        neighbors_isObstacle = []
-        for neighbor in neighbor_cells:
-            if neighbor is None:
-                neighbors_isObstacle.append(True)
-            elif neighbor is not None and not self.isEmpty(neighbor, stones_state):
-                neighbors_isObstacle.append(True)
-            else:
-                neighbors_isObstacle.append(False)
+        neighbors_isObstacle = [(neighbor is None or (neighbor is not None
+                                 and not self.isEmpty(neighbor, stones_state))) for neighbor in neighbor_cells]
         
         return neighbors_isObstacle
     
@@ -247,18 +207,17 @@ class SearchSpace:
             return True
 
         # This is quite awkward, I'm just gonna let the agent move freely by itself
-        # else:
-        #     # Check if agent is moving further from all stones
-        #     agent_stone_dist_curr = agent_stone_distance(self.closed_set[-1].agent_pos, self.stonesState(prev_node))
+        else:
+            # Check if agent is moving further from all stones
+            agent_stone_dist_curr = agent_stone_distance(self.closed_set[-1].agent_pos, self.stonesState(prev_node))
             
-        #     surrounding_isEmpty = True
-        #     for neighbor in self.get_neighbors(new_agent_pos):
-        #         for sub_neighbor_status in self.neighborStatus(neighbor, stones_state):
-        #             surrounding_isEmpty = surrounding_isEmpty and not sub_neighbor_status
+            surrounding_isEmpty = 1
+            for neighbor in self.get_neighbors(new_agent_pos):
+                surrounding_isEmpty &= np.all(np.array(self.neighborStatus(neighbor, stones_state)))
 
-        #     agent_stone_dist_new = agent_stone_distance(new_agent_pos, stones_state)
-        #     if surrounding_isEmpty and np.all(agent_stone_dist_curr + 1 < agent_stone_dist_new):
-        #         return True
+            agent_stone_dist_new = agent_stone_distance(new_agent_pos, stones_state)
+            if surrounding_isEmpty and np.all(agent_stone_dist_curr + 1 < agent_stone_dist_new):
+                return True
         
         return False
 
