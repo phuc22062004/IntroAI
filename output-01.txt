@@ -1,0 +1,6 @@
+DFS	
+Steps: 106, Weight: 893, Node: 816, Time (ms): 50.63, Memory (MB): 0.16
+uuurrrrrrrdddluulddluulddluulDuurrrrrrdddluulddluulddlLuuulddLulDururrrrrrrrdddluulddluulddluuldlldRRRRRRR	
+DFS	
+Steps: 106, Weight: 893, Node: 755, Time (ms): 134.07, Memory (MB): 0.17
+uuurrrrrrrdddluulddluulddluulDuurrrrrrdddluulddluulddlLuuulddLulDururrrrrrrrdddluulddluulddluuldlldRRRRRRR	
