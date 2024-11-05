@@ -6,12 +6,9 @@ from tkinter import messagebox
 from PIL import Image,ImageTk
 import maze
 import algos
-<<<<<<< Updated upstream
 from maze import write_output
-=======
 from utils import write_output
 import threading
->>>>>>> Stashed changes
     
 #class GUI dùng cho giao diện
 class GameGUI:
@@ -36,11 +33,8 @@ class GameGUI:
         self.init___ = True
         self.list_map  = name_map
         self.load_map(name_map=name_map[0])
-<<<<<<< Updated upstream
-=======
         self.out_road()
         print("xong thuat toan")
->>>>>>> Stashed changes
         self.left_frame = Frame(root,width=500,height=700, bg="grey")
         self.left_frame.grid(row=0,column=0,padx=10,pady=5)
         self.tool_bar = Frame(self.left_frame,width=00,height=700,bg="grey")
@@ -105,8 +99,6 @@ class GameGUI:
         selected_item = self.listbox.get()
         self.reset_game(selected_item)
 
-<<<<<<< Updated upstream
-=======
     def run_dfs(self):
         new_game = maze.SearchSpace(self.map_tmp)
         tmp, self.dfs = algos.DFS(new_game)
@@ -155,7 +147,7 @@ class GameGUI:
         bfs_thread.join()
         ucs_thread.join()
         a_star_thread.join()
-
+        print("xong")
         # Tạo nội dung kết quả
         result = (
             self.run_dfs() +
@@ -172,7 +164,7 @@ class GameGUI:
         name_file_out = f"output-{index+1:02}.txt"
         write_output(name_file_out,result)
         print("All algorithms completed and output written.")
->>>>>>> Stashed changes
+
 
     #hàm xử lý sự kiện khi chọn một phần tử trong Listbox
     def on_select(self,event):
@@ -198,47 +190,17 @@ class GameGUI:
         event.keysym = direction
         self.move_player(event)
 
-    def write(self,result):
-        index = self.listbox.current()
-        name_file_out = f"output-{index+1:02}.txt"
-        write_output(name_file_out,result)
-
-    def initgame(self):
-        result_list = [' '.join(map(str,self.khoi_luong_da))]+[''.join(row) for row in self.map]
-        new_game = maze.SearchSpace(result_list)
-        return new_game
-
     def BFS(self):
-        result = ''
-        new_game = self.initgame()
-        temp,self.bfs = algos.BFS(new_game)
-        result += f"BFS\t\n{temp}\t\n"
-        self.write(result)
         self.read_road(self.bfs,0)
     
     def UCS(self):
-        result = ''
-        new_game = self.initgame()
-        temp,self.bfs = algos.UCS(new_game)
-        result += f"UCS\t\n{temp}\t\n"
-        self.write(result)
         self.read_road(self.ucs,0)
 
 
     def A_star(self):
-        result = ''
-        new_game = self.initgame()
-        temp,self.bfs = algos.AStar(new_game)
-        result += f"A*\t\n{temp}\t\n"
-        self.write(result)
         self.read_road(self.a_star, 0)
     
     def DFS(self):
-        result = ''
-        new_game = self.initgame()
-        temp,self.bfs = algos.DFS(new_game)
-        result += f"DFS\t\n{temp}\t\n"
-        self.write(result)
         self.read_road(self.dfs,0)
     
     def read_road(self, road,index):
@@ -261,10 +223,7 @@ class GameGUI:
         self.full = []
         with open(name_map, 'r') as file:
             lines = file.readlines()
-<<<<<<< Updated upstream
-=======
             self.map_tmp = [line.strip() for line in lines]
->>>>>>> Stashed changes
             self.full.append(lines)
             self.khoi_luong_da = [int(x) for x in lines[0].strip().split(" ")]
             for line in lines[1:]:
