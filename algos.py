@@ -113,8 +113,9 @@ def AStar(game: SearchSpace):
         for _ in range(stone_count):
             max_stone_weight_id = np.argmax(np_stone_weights)
             closest_switch_id = np.argmin(stone_to_switches[max_stone_weight_id])
-            total += (stone_to_switches[max_stone_weight_id, closest_switch_id] * np_stone_weights[max_stone_weight_id]
-                      + agent_to_stone[max_stone_weight_id]) * int(stones_state[max_stone_weight_id] not in game.switches)
+            if stones_state[max_stone_weight_id] not in game.switches:
+                total += (stone_to_switches[max_stone_weight_id, closest_switch_id] * np_stone_weights[max_stone_weight_id]
+                          + agent_to_stone[max_stone_weight_id])
 
             np_stone_weights[max_stone_weight_id] = np.min(np_stone_weights - 1)
             stone_to_switches[:,closest_switch_id] = np.max(stone_to_switches + 1, axis = 1)
