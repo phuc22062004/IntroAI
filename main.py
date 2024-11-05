@@ -7,6 +7,7 @@ from PIL import Image,ImageTk
 import maze
 import algos
 from maze import write_output
+import threading
     
 #class GUI dùng cho giao diện
 class GameGUI:
@@ -17,19 +18,27 @@ class GameGUI:
             'r': "Right",
             'l': "Left"
         }
+        self.map_tmp = []
         self.bfs = ''
         self.dfs = ''
         self.a_star = ''
         self.ucs = ''
+        self.result_bfs = ''
+        self.result_dfs = ''
+        self.result_a_start = ''
+        self.result_ucs = ''
         self.step = 0
         self.weight = 0
         self.ID_rock = {}
         self.count_rock = 0
         self.root = root  
         self.label_num = []
+        self.select = 0
         self.init___ = True
         self.list_map  = name_map
         self.load_map(name_map=name_map[0])
+        self.out_road()
+        print("xong thuat toan")
         self.left_frame = Frame(root,width=500,height=700, bg="grey")
         self.left_frame.grid(row=0,column=0,padx=10,pady=5)
         self.tool_bar = Frame(self.left_frame,width=00,height=700,bg="grey")
@@ -85,7 +94,7 @@ class GameGUI:
         self.display_result = Frame(self.right_frame,width=900,height=200,padx=5,pady=10, bg="white")
         self.display_result.grid(row=1,column=0)
         Label(self.display_result,text="Result: ",font=("Time News Roman", 13, "bold")).grid(row=0,column=0)
-        self.label_result = Label(self.display_result,text="weigth = 0\nstep = 0",font=("Time News Roman", 13),width=60)
+        self.label_result = Label(self.display_result,text="Weight = 0\nStep = 0",font=("Time News Roman", 13),width=60)
         self.label_result.grid(row=1,column=0)
         self.create_grid()
         self.init___ = False
@@ -94,11 +103,83 @@ class GameGUI:
         selected_item = self.listbox.get()
         self.reset_game(selected_item)
 
+    def run_dfs(self):
+        new_game = maze.SearchSpace(self.map_tmp)
+        tmp, self.dfs = algos.DFS(new_game)
+        print("complete DFS: ")
+        print(self.dfs)
+        self.result_dfs = f"DFS\t\n{tmp}\t\n"
+
+    def run_bfs(self):
+        new_game = maze.SearchSpace(self.map_tmp)
+        tmp, self.bfs = algos.BFS(new_game)
+        print("complete BFS: ")
+        print(self.bfs)
+        self.result_bfs = f"BFS\t\n{tmp}\t\n"
+
+    def run_ucs(self):
+        new_game = maze.SearchSpace(self.map_tmp)
+        tmp, self.ucs = algos.UCS(new_game)
+        print("complete UCS:")
+        print(self.ucs)
+        self.result_ucs = f"UCS\t\n{tmp}\t\n"
+
+    def run_a_star(self):
+        new_game = maze.SearchSpace(self.map_tmp)
+        tmp, self.a_star = algos.AStar(new_game)
+        print("complete A*:")
+        print(self.a_star)
+        self.result_a_start = f"A*\t\n{tmp}\t\n"
+    
+    def out_road(self):
+        print("Start searching...")
+
+        # Khởi tạo các luồng cho từng thuật toán
+        bfs_thread = threading.Thread(target=self.run_bfs)
+        ucs_thread = threading.Thread(target=self.run_ucs)
+        a_star_thread = threading.Thread(target=self.run_a_star)
+        dfs_thread = threading.Thread(target=self.run_dfs)
+
+        # Bắt đầu các luồng
+        dfs_thread.start()
+        bfs_thread.start()
+        ucs_thread.start()
+        a_star_thread.start()
+
+        # Chờ các luồng hoàn thành
+        dfs_thread.join()
+        bfs_thread.join()
+        ucs_thread.join()
+        a_star_thread.join()
+
+        # Tạo nội dung kết quả
+        result = (
+            self.result_dfs +
+            self.result_bfs +
+            self.result_ucs +
+            self.result_a_start
+        )
+
+        #write to output 
+        if self.init___:
+            index = 0   
+        else:
+            index = self.listbox.current()
+
+        name_file_out = f"output-{index+1:02}.txt"
+        write_output(name_file_out,result)
+        print("All algorithms completed and output written.")
+
 
     #hàm xử lý sự kiện khi chọn một phần tử trong Listbox
     def on_select(self,event):
         selected_item = self.listbox.get()
+        index = self.listbox.current()
         self.reset_game(selected_item)
+        if index != self.select:
+            self.select = index
+            self.out_road()
+
 
     # Đưa focus về cửa sổ chính để bỏ focus khỏi Combobox
     def change_focus(self,event):
@@ -119,47 +200,17 @@ class GameGUI:
         event.keysym = direction
         self.move_player(event)
 
-    def write(self,result):
-        index = self.listbox.current()
-        name_file_out = f"output-{index+1:02}.txt"
-        write_output(name_file_out,result)
-
-    def initgame(self):
-        result_list = [' '.join(map(str,self.khoi_luong_da))]+[''.join(row) for row in self.map]
-        new_game = maze.SearchSpace(result_list)
-        return new_game
-
     def BFS(self):
-        result = ''
-        new_game = self.initgame()
-        temp,self.bfs = algos.BFS(new_game)
-        result += f"BFS\t\n{temp}\t\n"
-        self.write(result)
         self.read_road(self.bfs,0)
     
     def UCS(self):
-        result = ''
-        new_game = self.initgame()
-        temp,self.ucs = algos.UCS(new_game)
-        result += f"UCS\t\n{temp}\t\n"
-        self.write(result)
         self.read_road(self.ucs,0)
 
 
     def A_star(self):
-        result = ''
-        new_game = self.initgame()
-        temp,self.a_star = algos.AStar(new_game)
-        result += f"A*\t\n{temp}\t\n"
-        self.write(result)
         self.read_road(self.a_star, 0)
     
     def DFS(self):
-        result = ''
-        new_game = self.initgame()
-        temp,self.dfs = algos.DFS(new_game)
-        result += f"DFS\t\n{temp}\t\n"
-        self.write(result)
         self.read_road(self.dfs,0)
     
     def read_road(self, road,index):
@@ -182,6 +233,7 @@ class GameGUI:
         self.full = []
         with open(name_map, 'r') as file:
             lines = file.readlines()
+            self.map_tmp = [line.strip() for line in lines]
             self.full.append(lines)
             self.khoi_luong_da = [int(x) for x in lines[0].strip().split(" ")]
             for line in lines[1:]:
