@@ -25,10 +25,12 @@ class GameGUI:
         self.weight = 0
         self.ID_rock = {}
         self.count_rock = 0
-        self.direction_rock = {}
         self.root = root  
         self.label_num = []
-
+        self.init___ = True
+        self.list_map  = name_map
+        self.load_map(name_map=name_map[0])
+        print("xong thuat toan")
         self.left_frame = Frame(root,width=500,height=700, bg="grey")
         self.left_frame.grid(row=0,column=0,padx=10,pady=5)
         self.tool_bar = Frame(self.left_frame,width=00,height=700,bg="grey")
@@ -63,8 +65,6 @@ class GameGUI:
         self.map_GUI.grid(row=0,column=0,padx=20,pady=5)
 
         self.images = {}  # Store images to prevent garbage collection
-        self.list_map  = name_map
-        self.load_map(name_map=name_map[0])
         self.player_position = self.find_player_position()
         self.root.focus_set()
         self.root.bind("<KeyPress>", self.move_player)
@@ -89,14 +89,14 @@ class GameGUI:
         self.label_result = Label(self.display_result,text="weigth = 0\nstep = 0",font=("Time News Roman", 13),width=60)
         self.label_result.grid(row=1,column=0)
         self.create_grid()
+        self.init___ = False
 
     def reset_this(self):
         selected_item = self.listbox.get()
         self.reset_game(selected_item)
 
-    def out_road(self):
+    def out_road(self,result_list):
         result = ''
-        result_list = [' '.join(map(str,self.khoi_luong_da))]+[''.join(row) for row in self.map]
         new_game = maze.SearchSpace(result_list)
 
         #DFS
@@ -112,7 +112,10 @@ class GameGUI:
         tmp,self.a_star = algos.AStar(new_game)
         result += f"A*\t\n{tmp}\t\n"
         #write to output 
-        index = self.listbox.current()
+        if self.init___:
+            index = 1   
+        else:
+            index = self.listbox.current()
         name_file_out = f"output-{index+1:02}.txt"
         write_output(name_file_out,result)
 
@@ -123,6 +126,7 @@ class GameGUI:
     def on_select(self,event):
         selected_item = self.listbox.get()
         self.reset_game(selected_item)
+
     # Đưa focus về cửa sổ chính để bỏ focus khỏi Combobox
     def change_focus(self,event):
         self.root.focus() 
@@ -175,14 +179,17 @@ class GameGUI:
     def readmap(self,name_map):
         map__ = []
         self.full = []
+        map_tmp = []
         with open(name_map, 'r') as file:
             lines = file.readlines()
+            map_tmp = [line.strip() for line in lines]
             self.full.append(lines)
             self.khoi_luong_da = [int(x) for x in lines[0].strip().split(" ")]
             for line in lines[1:]:
                 line = line.split("\n")[0]
                 list__ = list(line)
                 map__.append(list__)
+        self.out_road(map_tmp)
         return map__
 
     def find_player_position(self):
@@ -343,7 +350,6 @@ class GameGUI:
                         self.label_num.append(canvas)
                     label_row.append(canvas)
             self.labels.append(label_row)
-        self.out_road()
 
 
 def load_file():
