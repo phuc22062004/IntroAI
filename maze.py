@@ -87,6 +87,8 @@ class SearchSpace:
         self.closed_set: list[Node] = []
 
     def get_neighbors(self, position: tuple[int]):
+        if position is None:
+            return []
         # Get all valid directions
         up = (position[0] - 1, position[1]) if position[0] > 0 else None
         down = (position[0] + 1, position[1]) if position[0] < self.row - 1 else None
@@ -179,8 +181,8 @@ class SearchSpace:
                 if self.isWall(stone_neighbors[i]) and self.isWall(stone_neighbors[i - 1]):
                     return True
 
-                corner_1 = (stone_neighbors[i - 1][0], stone_neighbors[i][1])
-                corner_2 = (stone_neighbors[i][0], stone_neighbors[i - 1][1])
+                corner_1 = (stone_neighbors[i - 1][0], stone_neighbors[i][1]) if stone_neighbors[i - 1] is not None and stone_neighbors[i] is not None else None
+                corner_2 = (stone_neighbors[i][0], stone_neighbors[i - 1][1]) if stone_neighbors[i - 1] is not None and stone_neighbors[i] is not None else None
                 if not (self.isEmpty(stone_neighbors[i], stones_state) or self.isEmpty(stone_neighbors[i - 1], stones_state)
                         or self.isEmpty(corner_1, stones_state) or self.isEmpty(corner_2, stones_state)):
                     return True
