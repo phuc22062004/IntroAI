@@ -24,6 +24,10 @@ class GameGUI:
         self.dfs = ''
         self.a_star = ''
         self.ucs = ''
+        self.result_bfs = ''
+        self.result_dfs = ''
+        self.result_a_start = ''
+        self.result_ucs = ''
         self.step = 0
         self.weight = 0
         self.ID_rock = {}
@@ -104,28 +108,28 @@ class GameGUI:
         tmp, self.dfs = algos.DFS(new_game)
         print("complete DFS: ")
         print(self.dfs)
-        return f"DFS\t\n{tmp}\t\n"
+        self.result_dfs = f"DFS\t\n{tmp}\t\n"
 
     def run_bfs(self):
         new_game = maze.SearchSpace(self.map_tmp)
         tmp, self.bfs = algos.BFS(new_game)
         print("complete BFS: ")
         print(self.bfs)
-        return f"BFS\t\n{tmp}\t\n"
+        self.result_bfs = f"BFS\t\n{tmp}\t\n"
 
     def run_ucs(self):
         new_game = maze.SearchSpace(self.map_tmp)
         tmp, self.ucs = algos.UCS(new_game)
         print("complete UCS:")
         print(self.ucs)
-        return f"UCS\t\n{tmp}\t\n"
+        self.result_ucs = f"UCS\t\n{tmp}\t\n"
 
     def run_a_star(self):
         new_game = maze.SearchSpace(self.map_tmp)
         tmp, self.a_star = algos.AStar(new_game)
         print("complete A*:")
         print(self.a_star)
-        return f"A*\t\n{tmp}\t\n"
+        self.result_a_start = f"A*\t\n{tmp}\t\n"
     
     def out_road(self):
         print("Start searching...")
@@ -147,13 +151,13 @@ class GameGUI:
         bfs_thread.join()
         ucs_thread.join()
         a_star_thread.join()
-        print("xong")
+
         # Tạo nội dung kết quả
         result = (
-            self.run_dfs() +
-            self.run_bfs() +
-            self.run_ucs() +
-            self.run_a_star()
+            self.result_dfs +
+            self.result_bfs +
+            self.result_ucs +
+            self.result_a_start
         )
 
         #write to output 
@@ -161,6 +165,7 @@ class GameGUI:
             index = 0   
         else:
             index = self.listbox.current()
+
         name_file_out = f"output-{index+1:02}.txt"
         write_output(name_file_out,result)
         print("All algorithms completed and output written.")
