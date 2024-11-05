@@ -98,22 +98,30 @@ class GameGUI:
     def out_road(self,result_list):
         result = ''
         new_game = maze.SearchSpace(result_list)
-
+        print("start")
         #DFS
         tmp,self.dfs = algos.DFS(new_game)
         result+= f"DFS\t\n{tmp}\t\n"
+        print("complete DFS: ")
+        print(self.dfs)
         #BFS
         tmp, self.bfs = algos.BFS(new_game)
         result += f"BFS\t\n{tmp}\t\n"
+        print("complete BFS: ")
+        print(self.bfs)
         #UCS
         tmp, self.ucs = algos.UCS(new_game)
         result += f"UCS\t\n{tmp}\t\n"
+        print("complete UCS:")
+        print(self.ucs)
         #A*
         tmp,self.a_star = algos.AStar(new_game)
         result += f"A*\t\n{tmp}\t\n"
+        print("complete A*:")
+        print(self.a_star)
         #write to output 
         if self.init___:
-            index = 1   
+            index = 0   
         else:
             index = self.listbox.current()
         name_file_out = f"output-{index+1:02}.txt"
