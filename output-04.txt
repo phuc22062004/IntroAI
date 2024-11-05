@@ -1,9 +1,0 @@
-DFS	
-Steps: 0, Weight: 0, Node: 6, Time(ms): 2.00, Memory (MB): 0.01
-No solution!	
-A*	
-Steps: 0, Weight: 6536, Node: 349, Time(ms): 8.00, Memory(MB): 0.06
-No solution!	
-BFS	
-Node: 514, Time (ms): 43.00, Memory (MB): 0.07
-No solution!	

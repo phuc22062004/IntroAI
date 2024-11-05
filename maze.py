@@ -30,6 +30,10 @@ def agent_stone_distance(agent_pos: tuple[int], stones_state: list[tuple[int]]):
     Manhattan_dist = np.sum(np.abs(agent_stone_diff), axis = -1)
     return Manhattan_dist
 
+def write_output(output_file,data):
+    with open(output_file,"a",encoding="utf-8") as file:
+        file.write(data)
+    
 class SearchSpace:
     def __init__(self, input: list[str]) -> None:
         # Extract stones' weight
@@ -190,26 +194,26 @@ class SearchSpace:
                 return False
         
             stone_neighbors = self.get_neighbors(stone_pos)
-            for i in range(3):
+            for i in range(4):
                 if self.isWall(stone_neighbors[i]) and self.isWall(stone_neighbors[i - 1]):
                     return True
                 
-                elif self.isWall(stone_neighbors[i]):
-                    if self.isStone(stone_neighbors[i - 1], stones_state) and not self.isEmpty(
-                        (stone_neighbors[i - 1][0] - 1, stone_neighbors[i - 1][1]), stones_state):
-                        return True
+                # elif self.isWall(stone_neighbors[i]):
+                #     if self.isStone(stone_neighbors[i - 1], stones_state) and not self.isEmpty(
+                #         (stone_neighbors[i - 1][0] - 1, stone_neighbors[i - 1][1]), stones_state):
+                #         return True
                     
-                    elif self.isStone(stone_neighbors[i + 1], stones_state) and not self.isEmpty(
-                        (stone_neighbors[i + 1][0] - 1, stone_neighbors[i + 1][1]), stones_state):
-                        return True
+                #     elif self.isStone(stone_neighbors[i + 1], stones_state) and not self.isEmpty(
+                #         (stone_neighbors[i + 1][0] - 1, stone_neighbors[i + 1][1]), stones_state):
+                #         return True
                     
-                elif (self.isStone(stone_neighbors[i], stones_state) and self.isStone(stone_neighbors[i - 1], stones_state)
-                      and self.isStone((stone_neighbors[i - 1][0] - 1, stone_neighbors[i - 1][1]), stones_state)):
-                    return True
+                # elif (self.isStone(stone_neighbors[i], stones_state) and self.isStone(stone_neighbors[i - 1], stones_state)
+                #       and self.isStone((stone_neighbors[i - 1][0] - 1, stone_neighbors[i - 1][1]), stones_state)):
+                #     return True
                 
-                elif (self.isStone(stone_neighbors[i], stones_state) and self.isStone(stone_neighbors[i + 1], stones_state)
-                      and self.isStone((stone_neighbors[i + 1][0] - 1, stone_neighbors[i + 1][1]), stones_state)):
-                    return True
+                # elif (self.isStone(stone_neighbors[i], stones_state) and self.isStone(stone_neighbors[i + 1], stones_state)
+                #       and self.isStone((stone_neighbors[i + 1][0] - 1, stone_neighbors[i + 1][1]), stones_state)):
+                #     return True
                     
         return False
     

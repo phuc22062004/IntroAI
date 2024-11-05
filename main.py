@@ -6,7 +6,7 @@ from tkinter import messagebox
 from PIL import Image,ImageTk
 import maze
 import algos
-from utils import write_output
+from maze import write_output
     
 #class GUI dùng cho giao diện
 class GameGUI:
@@ -30,7 +30,6 @@ class GameGUI:
         self.init___ = True
         self.list_map  = name_map
         self.load_map(name_map=name_map[0])
-        print("xong thuat toan")
         self.left_frame = Frame(root,width=500,height=700, bg="grey")
         self.left_frame.grid(row=0,column=0,padx=10,pady=5)
         self.tool_bar = Frame(self.left_frame,width=00,height=700,bg="grey")
@@ -43,7 +42,7 @@ class GameGUI:
         # Biến lưu trạng thái
         self.is_paused = False  
 
-        self.button_DFS = Button(self.tool_bar,width=5,height=2, text="DFS",command=self.Run_DFS)
+        self.button_DFS = Button(self.tool_bar,width=5,height=2, text="DFS",command=self.DFS)
         self.button_BFS = Button(self.tool_bar,width=5,height=2, text="BFS",command=self.BFS)
         self.button_UCS = Button(self.tool_bar, width=5,height=2,text="UCS",command=self.UCS)
         self.button_A_star = Button(self.tool_bar,width=5,height=2,text="A*",command=self.A_star)
@@ -95,33 +94,6 @@ class GameGUI:
         selected_item = self.listbox.get()
         self.reset_game(selected_item)
 
-    def out_road(self,result_list):
-        result = ''
-        new_game = maze.SearchSpace(result_list)
-
-        #DFS
-        tmp,self.dfs = algos.DFS(new_game)
-        result+= f"DFS\t\n{tmp}\t\n"
-        #BFS
-        tmp, self.bfs = algos.BFS(new_game)
-        result += f"BFS\t\n{tmp}\t\n"
-        #UCS
-        tmp, self.ucs = algos.UCS(new_game)
-        result += f"UCS\t\n{tmp}\t\n"
-        #A*
-        tmp,self.a_star = algos.AStar(new_game)
-        result += f"A*\t\n{tmp}\t\n"
-        #write to output 
-        if self.init___:
-            index = 1   
-        else:
-            index = self.listbox.current()
-        name_file_out = f"output-{index+1:02}.txt"
-        write_output(name_file_out,result)
-
-
-
-
     #hàm xử lý sự kiện khi chọn một phần tử trong Listbox
     def on_select(self,event):
         selected_item = self.listbox.get()
@@ -146,19 +118,47 @@ class GameGUI:
         event.keysym = direction
         self.move_player(event)
 
-    #thực hiện BFS
+    def write(self,result):
+        index = self.listbox.current()
+        name_file_out = f"output-{index+1:02}.txt"
+        write_output(name_file_out,result)
+
+    def initgame(self):
+        result_list = [' '.join(map(str,self.khoi_luong_da))]+[''.join(row) for row in self.map]
+        new_game = maze.SearchSpace(result_list)
+        return new_game
+
     def BFS(self):
+        result = ''
+        new_game = self.initgame()
+        temp,self.bfs = algos.BFS(new_game)
+        result += f"BFS\t\n{temp}\t\n"
+        self.write(result)
         self.read_road(self.bfs,0)
     
     def UCS(self):
-        self.read_road(self.ucs)
+        result = ''
+        new_game = self.initgame()
+        temp,self.bfs = algos.UCS(new_game)
+        result += f"UCS\t\n{temp}\t\n"
+        self.write(result)
+        self.read_road(self.ucs,0)
 
 
     def A_star(self):
+        result = ''
+        new_game = self.initgame()
+        temp,self.bfs = algos.AStar(new_game)
+        result += f"A*\t\n{temp}\t\n"
+        self.write(result)
         self.read_road(self.a_star, 0)
-        return
     
-    def Run_DFS(self):
+    def DFS(self):
+        result = ''
+        new_game = self.initgame()
+        temp,self.bfs = algos.DFS(new_game)
+        result += f"DFS\t\n{temp}\t\n"
+        self.write(result)
         self.read_road(self.dfs,0)
     
     def read_road(self, road,index):
@@ -179,17 +179,14 @@ class GameGUI:
     def readmap(self,name_map):
         map__ = []
         self.full = []
-        map_tmp = []
         with open(name_map, 'r') as file:
             lines = file.readlines()
-            map_tmp = [line.strip() for line in lines]
             self.full.append(lines)
             self.khoi_luong_da = [int(x) for x in lines[0].strip().split(" ")]
             for line in lines[1:]:
                 line = line.split("\n")[0]
                 list__ = list(line)
                 map__.append(list__)
-        self.out_road(map_tmp)
         return map__
 
     def find_player_position(self):
