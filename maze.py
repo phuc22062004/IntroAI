@@ -31,7 +31,7 @@ def agent_stone_distance(agent_pos: tuple[int], stones_state: list[tuple[int]]):
     return Manhattan_dist
 
 def write_output(output_file,data):
-    with open(output_file,"a",encoding="utf-8") as file:
+    with open("output/"+output_file,"r",encoding="utf-8") as file:
         file.write(data)
     
 class SearchSpace:

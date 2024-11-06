@@ -9,10 +9,11 @@ import algos
 import threading
 from maze import write_output
 import threading
-    
+import math
+
 #class GUI dùng cho giao diện
 class GameGUI:
-    def __init__(self, root, name_map):
+    def __init__(self, root: Tk, name_map):
         self.go_to = {
             'u': "Up",
             'd': "Down",
@@ -38,8 +39,6 @@ class GameGUI:
         self.init___ = True
         self.list_map  = name_map
         self.load_map(name_map=name_map[0])
-        self.out_road()
-        print("xong thuat toan")
         self.left_frame = Frame(root,width=500,height=700, bg="grey")
         self.left_frame.grid(row=0,column=0,padx=10,pady=5)
         self.tool_bar = Frame(self.left_frame,width=00,height=700,bg="grey")
@@ -99,6 +98,7 @@ class GameGUI:
         self.label_result.grid(row=1,column=0)
         self.create_grid()
         self.init___ = False
+        self.show_splach()
 
     def reset_this(self):
         selected_item = self.listbox.get()
@@ -132,34 +132,6 @@ class GameGUI:
         print(self.a_star)
         self.result_a_start = f"A*\t\n{tmp}\t\n"
     
-    def out_road(self):
-        print("Start searching...")
-        print(self.map_tmp)
-        # Khởi tạo các luồng cho từng thuật toán
-        self.run_bfs()
-        self.run_ucs()
-        self.run_a_star()
-        self.run_dfs()
-
-        # Tạo nội dung kết quả
-        result = (
-            self.result_dfs +
-            self.result_bfs +
-            self.result_ucs +
-            self.result_a_start
-        )
-
-        #write to output 
-        if self.init___:
-            index = 0   
-        else:
-            index = self.listbox.current()
-
-        name_file_out = f"output-{index+1:02}.txt"
-        write_output(name_file_out,result)
-        print("All algorithms completed and output written.")
-
-
     #hàm xử lý sự kiện khi chọn một phần tử trong Listbox
     def on_select(self,event):
         selected_item = self.listbox.get()
@@ -167,8 +139,8 @@ class GameGUI:
         self.reset_game(selected_item)
         if index != self.select:
             self.select = index
-            self.out_road()
-
+            self.show_splach()
+            
     # Đưa focus về cửa sổ chính để bỏ focus khỏi Combobox
     def change_focus(self,event):
         self.root.focus() 
@@ -229,43 +201,50 @@ class GameGUI:
         print(self.a_star)
         self.result_a_start = f"A*\t\n{tmp}\t\n"
     
-    # def out_road(self):
-    #     print("Start searching...")
-    #     # Khởi tạo các luồng cho từng thuật toán
-    #     dfs_thread = threading.Thread(target=self.run_dfs)
-    #     bfs_thread = threading.Thread(target=self.run_bfs)
-    #     ucs_thread = threading.Thread(target=self.run_ucs)
-    #     a_star_thread = threading.Thread(target=self.run_a_star)
+    def show_splach(self):
+        self.root.withdraw()
+        # Tạo cửa sổ Splash Screen
+        splash = Toplevel(self.root)
+        splash.title("Loading...")
+        splash.geometry("300x150")
 
-    #     # Bắt đầu các luồng
-    #     dfs_thread.start()
-    #     bfs_thread.start()
-    #     ucs_thread.start()
-    #     a_star_thread.start()
+        # Thêm Progressbar vào cửa sổ Splash Screen
+        progress = ttk.Progressbar(splash, orient="horizontal", length=200, mode="indeterminate")
+        progress.pack(pady=30)
+        progress.start()
 
-    #     # Chờ các luồng hoàn thành
-    #     dfs_thread.join()
-    #     bfs_thread.join()
-    #     ucs_thread.join()
-    #     a_star_thread.join()
+        # Hàm để đóng Splash Screen sau khi xong
+        def close_splash():
+            splash.destroy()
+            self.root.deiconify()
+        threading.Thread(target=self.out_road, args=(close_splash,)).start()
 
-    #     # Tạo nội dung kết quả
-    #     result = (
-    #         self.result_dfs +
-    #         self.result_bfs +
-    #         self.result_ucs +
-    #         self.result_a_start
-    #     )
+    def out_road(self,callback):
+        print("Start searching...")
+        # Khởi tạo các luồng cho từng thuật toán
+        self.run_dfs()
+        self.run_bfs()
+        self.run_ucs()
+        self.run_a_star()
 
-    #     #write to output 
-    #     if self.init___:
-    #         index = 0   
-    #     else:
-    #         index = self.listbox.current()
+    # Tạo nội dung kết quả
+        result = (
+            self.result_dfs +
+            self.result_bfs +
+            self.result_ucs +
+            self.result_a_start
+        )
 
-    #     name_file_out = f"output-{index+1:02}.txt"
-    #     write_output(name_file_out,result)
-    #     print("All algorithms completed and output written.")
+        #write to output 
+        if self.init___:
+            index = 0   
+        else:
+            index = self.listbox.current()
+
+        name_file_out = f"output-{index+1:02}.txt"
+        write_output(name_file_out,result)
+        print("All algorithms completed and output written.")
+        callback()
 
     def read_road(self, road,index):
         if road is None:
