@@ -134,24 +134,12 @@ class GameGUI:
     
     def out_road(self):
         print("Start searching...")
-
+        print(self.map_tmp)
         # Khởi tạo các luồng cho từng thuật toán
-        bfs_thread = threading.Thread(target=self.run_bfs)
-        ucs_thread = threading.Thread(target=self.run_ucs)
-        a_star_thread = threading.Thread(target=self.run_a_star)
-        dfs_thread = threading.Thread(target=self.run_dfs)
-
-        # Bắt đầu các luồng
-        dfs_thread.start()
-        bfs_thread.start()
-        ucs_thread.start()
-        a_star_thread.start()
-
-        # Chờ các luồng hoàn thành
-        dfs_thread.join()
-        bfs_thread.join()
-        ucs_thread.join()
-        a_star_thread.join()
+        self.run_bfs()
+        # self.run_ucs()
+        # self.run_a_star()
+        # self.run_dfs()
 
         # Tạo nội dung kết quả
         result = (
@@ -241,44 +229,43 @@ class GameGUI:
         print(self.a_star)
         self.result_a_start = f"A*\t\n{tmp}\t\n"
     
-    def out_road(self):
-        print("Start searching...")
+    # def out_road(self):
+    #     print("Start searching...")
+    #     # Khởi tạo các luồng cho từng thuật toán
+    #     dfs_thread = threading.Thread(target=self.run_dfs)
+    #     bfs_thread = threading.Thread(target=self.run_bfs)
+    #     ucs_thread = threading.Thread(target=self.run_ucs)
+    #     a_star_thread = threading.Thread(target=self.run_a_star)
 
-        # Khởi tạo các luồng cho từng thuật toán
-        dfs_thread = threading.Thread(target=self.run_dfs)
-        bfs_thread = threading.Thread(target=self.run_bfs)
-        ucs_thread = threading.Thread(target=self.run_ucs)
-        a_star_thread = threading.Thread(target=self.run_a_star)
+    #     # Bắt đầu các luồng
+    #     dfs_thread.start()
+    #     bfs_thread.start()
+    #     ucs_thread.start()
+    #     a_star_thread.start()
 
-        # Bắt đầu các luồng
-        dfs_thread.start()
-        bfs_thread.start()
-        ucs_thread.start()
-        a_star_thread.start()
+    #     # Chờ các luồng hoàn thành
+    #     dfs_thread.join()
+    #     bfs_thread.join()
+    #     ucs_thread.join()
+    #     a_star_thread.join()
 
-        # Chờ các luồng hoàn thành
-        dfs_thread.join()
-        bfs_thread.join()
-        ucs_thread.join()
-        a_star_thread.join()
+    #     # Tạo nội dung kết quả
+    #     result = (
+    #         self.result_dfs +
+    #         self.result_bfs +
+    #         self.result_ucs +
+    #         self.result_a_start
+    #     )
 
-        # Tạo nội dung kết quả
-        result = (
-            self.result_dfs +
-            self.result_bfs +
-            self.result_ucs +
-            self.result_a_start
-        )
+    #     #write to output 
+    #     if self.init___:
+    #         index = 0   
+    #     else:
+    #         index = self.listbox.current()
 
-        #write to output 
-        if self.init___:
-            index = 0   
-        else:
-            index = self.listbox.current()
-
-        name_file_out = f"output-{index+1:02}.txt"
-        write_output(name_file_out,result)
-        print("All algorithms completed and output written.")
+    #     name_file_out = f"output-{index+1:02}.txt"
+    #     write_output(name_file_out,result)
+    #     print("All algorithms completed and output written.")
 
     def read_road(self, road,index):
         if road is None:
@@ -300,7 +287,7 @@ class GameGUI:
         self.full = []
         with open(name_map, 'r') as file:
             lines = file.readlines()
-            self.map_tmp = [line.strip() for line in lines]
+            self.map_tmp = [line.replace("\n",'') for line in lines]
             self.full.append(lines)
             self.khoi_luong_da = [int(x) for x in lines[0].strip().split(" ")]
             for line in lines[1:]:
