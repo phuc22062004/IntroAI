@@ -1,0 +1,21 @@
+\section{Tìm kiếm theo chiều sâu (DFS)}
+\label{DFS}
+\subsection{Chi tiết về thuật toán}
+Thuật toán tìm kiếm theo chiều sâu cho phép tìm kiếm các trạng thái dựa theo một hướng nào đó, đến khi hướng đó không thể tìm kiếm được nữa thì thuật toán mới đổi hướng và thực hiện tiếp đến khi có lời giải hoặc không còn trạng thái nào được mở \cite{AI_HCMUS} \cite{discrete-advanced}. Quy trình thực hiện sẽ tương tự như quy trình \hyperref[algo-struct]{được trình bày ở phần 1.4}, với tập các trạng thái mở là một ngăn xếp \cite{AI_HCMUS}, và tiêu chí chọn trạng thái kế tiếp để mở là chọn trạng thái đầu tiên. Dưới đây là mã giả của thuật toán:
+
+\vskip 0.125 cm
+\textbf{thuật\_toán\_DFS}(màn\_chơi): \newline
+\indent\indent tập\_mở $\gets$ [trạng\_thái\_đầu] \newline
+\indent\indent tập\_đóng $\gets$ [] \newline
+\indent\indent \textbf{khi} tập\_mở \textbf{còn trạng thái}: \newline
+\indent\indent\indent trạng\_thái\_đóng\_mới $\gets$ \textbf{chọn\_trạng\_thái}(đầu tiên) \newline
+\indent\indent\indent \textbf{thêm} trạng\_thái\_đóng\_mới \textbf{vào} tập\_đóng \newline
+\indent\indent\indent \textbf{nếu} trạng\_thái\_đóng\_mới \textbf{là đích}: \newline
+\indent\indent\indent\indent lời\_giải $\gets$ \textbf{biểu\_diễn\_lời\_giải}(trạng\_thái\_đóng\_mới) \newline
+\indent\indent\indent\indent \textbf{trả về} lời\_giải \newline
+\indent\indent\indent các\_trạng\_thái\_mới $\gets$ \textbf{mở\_rộng\_trạng\_thái}(trạng\_thái\_đóng\_mới) \newline
+\indent\indent\indent \textbf{nếu có trạng thái trong}  các\_trạng\_thái\_mới: \newline
+\indent\indent\indent\indent \textbf{thêm} các\_trạng\_thái\_mới \textbf{vào đầu} tập\_mở \newline
+\indent\indent\indent \textbf{nếu không có trạng thái trong} tập\_mở: \newline
+\indent\indent\indent\indent \textbf{trả về} "Không có lời giải!"
+\subsection{Ưu, nhược điểm của thuật toán}
