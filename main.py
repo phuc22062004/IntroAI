@@ -10,7 +10,12 @@ import threading
 from maze import write_output
 import threading
 import math
+import psutil
+import tracemalloc
 
+def memory_usage():
+    process = psutil.Process(os.getpid())
+    return process.memory_info().rss / (1024 * 1024)  # Đơn vị MB
 #class GUI dùng cho giao diện
 class GameGUI:
     def __init__(self, root: Tk, name_map):
@@ -103,34 +108,6 @@ class GameGUI:
     def reset_this(self):
         selected_item = self.listbox.get()
         self.reset_game(selected_item)
-
-    def run_dfs(self):
-        new_game = maze.SearchSpace(self.map_tmp)
-        tmp, self.dfs = algos.DFS(new_game)
-        print("complete DFS: ")
-        print(self.dfs)
-        self.result_dfs = f"DFS\t\n{tmp}\t\n"
-
-    def run_bfs(self):
-        new_game = maze.SearchSpace(self.map_tmp)
-        tmp, self.bfs = algos.BFS(new_game)
-        print("complete BFS: ")
-        print(self.bfs)
-        self.result_bfs = f"BFS\t\n{tmp}\t\n"
-
-    def run_ucs(self):
-        new_game = maze.SearchSpace(self.map_tmp)
-        tmp, self.ucs = algos.UCS(new_game)
-        print("complete UCS:")
-        print(self.ucs)
-        self.result_ucs = f"UCS\t\n{tmp}\t\n"
-
-    def run_a_star(self):
-        new_game = maze.SearchSpace(self.map_tmp)
-        tmp, self.a_star = algos.AStar(new_game)
-        print("complete A*:")
-        print(self.a_star)
-        self.result_a_start = f"A*\t\n{tmp}\t\n"
     
     #hàm xử lý sự kiện khi chọn một phần tử trong Listbox
     def on_select(self,event):
@@ -140,7 +117,7 @@ class GameGUI:
         if index != self.select:
             self.select = index
             self.show_splach()
-            
+
     # Đưa focus về cửa sổ chính để bỏ focus khỏi Combobox
     def change_focus(self,event):
         self.root.focus() 
@@ -222,11 +199,21 @@ class GameGUI:
     def out_road(self,callback):
         print("Start searching...")
         # Khởi tạo các luồng cho từng thuật toán
-        self.run_dfs()
-        self.run_bfs()
-        self.run_ucs()
-        self.run_a_star()
+        dfs =  threading.Thread(target=self.run_dfs)
+        bfs = threading.Thread(target=self.run_bfs)
+        ucs = threading.Thread(target=self.run_ucs)
+        a_start = threading.Thread(target=self.run_a_star)
+        tracemalloc.start()
+        dfs.start()
+        bfs.start()
+        ucs.start()
+        a_start.start()
 
+        dfs.join()
+        bfs.join()
+        ucs.join()
+        a_start.join()
+        tracemalloc.stop()
     # Tạo nội dung kết quả
         result = (
             self.result_dfs +
@@ -234,7 +221,7 @@ class GameGUI:
             self.result_ucs +
             self.result_a_start
         )
-
+        
         #write to output 
         if self.init___:
             index = 0   

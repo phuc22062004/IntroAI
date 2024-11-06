@@ -4,7 +4,7 @@ import tracemalloc
 
 def DFS(game: SearchSpace):
     start_time = time.time()
-    tracemalloc.start()
+    # tracemalloc.start()
     open_set_capacity = 1
     goal = None
     nodes_created = 1
@@ -23,7 +23,7 @@ def DFS(game: SearchSpace):
 
     duration = (time.time() - start_time) * 1000
     memory_peak = tracemalloc.get_traced_memory()[1]
-    tracemalloc.stop()
+    # tracemalloc.stop()
     peak_in_MB = memory_peak / (1024 ** 2)
 
     path = game.path_construction()
@@ -36,7 +36,7 @@ No solution!''', '')
 
 def BFS(game: SearchSpace):
     start_time = time.time()
-    tracemalloc.start()
+    # tracemalloc.start()
     open_set_capacity = 1
     goal = None
     nodes_created = 1
@@ -55,7 +55,7 @@ def BFS(game: SearchSpace):
 
     duration = (time.time() - start_time) * 1000
     memory_peak = tracemalloc.get_traced_memory()[1]
-    tracemalloc.stop()
+    # tracemalloc.stop()
     peak_in_MB = memory_peak / (1024 ** 2)
 
     path = game.path_construction()
@@ -68,7 +68,7 @@ No solution!''', '')
 
 def UCS(game: SearchSpace):
     start_time = time.time()
-    tracemalloc.start()
+    # tracemalloc.start()
     open_set_capacity = 1
     goal = None
     nodes_created = 1
@@ -87,7 +87,7 @@ def UCS(game: SearchSpace):
     
     duration = (time.time() - start_time) * 1000
     memory_peak = tracemalloc.get_traced_memory()[1]
-    tracemalloc.stop()
+    # tracemalloc.stop()
     peak_in_MB = memory_peak / (1024 ** 2)
 
     path = game.path_construction()
@@ -123,7 +123,7 @@ def AStar(game: SearchSpace):
         return total
     
     start_time = time.time()
-    tracemalloc.start()
+    # tracemalloc.start()
     open_set_capacity = 1
     goal = None
     nodes_created = 1
@@ -142,7 +142,7 @@ def AStar(game: SearchSpace):
     
     duration = (time.time() - start_time) * 1000
     memory_peak = tracemalloc.get_traced_memory()[1]
-    tracemalloc.stop()
+    # tracemalloc.stop()
     peak_in_MB = memory_peak / (1024 ** 2)
 
     path = game.path_construction()

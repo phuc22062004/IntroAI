@@ -1,5 +1,6 @@
 import copy
 import numpy as np
+import os
 
 class Node:
     def __init__(self, agent_pos: tuple[int], prev_state: int = -1, state_id: int = 0,
@@ -31,7 +32,12 @@ def agent_stone_distance(agent_pos: tuple[int], stones_state: list[tuple[int]]):
     return Manhattan_dist
 
 def write_output(output_file,data):
-    with open("output/"+output_file,"r",encoding="utf-8") as file:
+    # Kiểm tra và tạo thư mục "output" nếu chưa tồn tại
+    output_dir = "output"
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    with open(f"{output_dir}/{output_file}", "w", encoding="utf-8") as file:
         file.write(data)
     
 class SearchSpace:
