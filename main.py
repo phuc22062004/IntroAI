@@ -138,16 +138,20 @@ class GameGUI:
         self.move_player(event)
 
     def BFS(self):
+        self.reset_this()
         self.read_road(self.bfs,0)
     
     def UCS(self):
+        self.reset_this()
         self.read_road(self.ucs,0)
 
 
     def A_star(self):
+        self.reset_this()
         self.read_road(self.a_star, 0)
     
     def DFS(self):
+        self.reset_this()
         self.read_road(self.dfs,0)
     
     def run_dfs(self):
@@ -199,21 +203,10 @@ class GameGUI:
     def out_road(self,callback):
         print("Start searching...")
         # Khởi tạo các luồng cho từng thuật toán
-        dfs =  threading.Thread(target=self.run_dfs)
-        bfs = threading.Thread(target=self.run_bfs)
-        ucs = threading.Thread(target=self.run_ucs)
-        a_start = threading.Thread(target=self.run_a_star)
-        tracemalloc.start()
-        dfs.start()
-        bfs.start()
-        ucs.start()
-        a_start.start()
-
-        dfs.join()
-        bfs.join()
-        ucs.join()
-        a_start.join()
-        tracemalloc.stop()
+        self.run_dfs()
+        self.run_bfs()
+        self.run_ucs()
+        self.run_a_star()
     # Tạo nội dung kết quả
         result = (
             self.result_dfs +

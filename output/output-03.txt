@@ -1,0 +1,12 @@
+DFS	
+Steps: 325, Weight: 913, Node: 4264, Time (ms): 6155.84, Memory (MB): 0.87
+urdddluluuldddlluuRurrrrdddluulddluLuurrrrdddluulddlllUruurrrrdddluulddlllluuRdrrruulDurrrdddluulddlluRuurrrdddluulDuurrdddlLuuulddldluuRurrrrdddluulddLuruulDurrrdddluulddlLuuurrrrdddluulddlUruurrdddlllluuRurrrdddluldlululdldRuururrrrdddluldluuRurrdddluldluuulddlulddrRuuurrrrdddluluRurDuldddluuulddlulddrRuuurrrdDuuldddLLLLL	
+BFS	
+Steps: 20, Weight: 444, Node: 8393, Time (ms): 15591.17, Memory (MB): 1.76
+llLDrdLLLuuRRRRRurDD	
+UCS	
+Steps: 27, Weight: 335, Node: 13477, Time (ms): 52999.72, Memory (MB): 2.89
+ddlllluRRRRurDuullllDDrdLLL	
+A*	
+Steps: 27, Weight: 335, Node: 1302, Time (ms): 28612.77, Memory (MB): 0.21
+llddlluRRRRurDulllulDDrdLLL	

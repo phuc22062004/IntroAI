@@ -1,0 +1,12 @@
+DFS	
+Node: 3273, Time (ms): 3107.88, Memory (MB): 0.62
+No solution!	
+BFS	
+Node: 2579, Time (ms): 2240.72, Memory (MB): 0.47
+No solution!	
+UCS	
+Node: 2647, Time (ms): 2387.06, Memory (MB): 0.48
+No solution!	
+A*	
+Node: 2776, Time (ms): 54618.82, Memory (MB): 0.51
+No solution!	
