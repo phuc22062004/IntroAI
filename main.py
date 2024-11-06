@@ -137,9 +137,9 @@ class GameGUI:
         print(self.map_tmp)
         # Khởi tạo các luồng cho từng thuật toán
         self.run_bfs()
-        # self.run_ucs()
-        # self.run_a_star()
-        # self.run_dfs()
+        self.run_ucs()
+        self.run_a_star()
+        self.run_dfs()
 
         # Tạo nội dung kết quả
         result = (
